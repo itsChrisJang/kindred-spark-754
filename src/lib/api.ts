@@ -241,7 +241,6 @@ export const api = {
     const users = load<Record<string, { password: string; nickname: string; id: string }>>(LS.USERS, {});
     let record = users[email];
     if (!record) {
-      // 데모 편의: 새 이메일이면 자동 가입
       const id = "u_" + Date.now();
       record = { password, nickname: email.split("@")[0], id };
       users[email] = record;
@@ -255,6 +254,42 @@ export const api = {
     save(LS.USER, user);
     return delay({ token, user });
   },
+
+  /**
+   * Google 로그인. 실제 백엔드에서는 Google ID Token 검증 후 토큰 반환.
+   * Kotlin 백엔드 엔드포인트: POST /api/auth/google { idToken }
+   *
+   * 데모 모드에서는 가상의 Google 사용자로 로그인 처리.
+   */
+  async loginWithGoogle(idToken?: string) {
+    if (USE_REMOTE)
+      return request<{ token: string; user: { id: string; nickname: string; email: string } }>(
+        "/api/auth/google",
+        { method: "POST", body: JSON.stringify({ idToken: idToken ?? "demo" }) },
+      );
+
+    // 데모: 브라우저별 고유 ID 부여
+    const users = load<Record<string, { password: string; nickname: string; id: string }>>(LS.USERS, {});
+    let demoId = load<string>("demo_google_id", "");
+    if (!demoId) {
+      demoId = "g_" + Math.random().toString(36).slice(2, 10);
+      save("demo_google_id", demoId);
+    }
+    const email = `${demoId}@google.demo`;
+    let record = users[email];
+    if (!record) {
+      const nick = "User_" + demoId.slice(2, 6);
+      record = { password: "google_oauth", nickname: nick, id: "u_" + demoId };
+      users[email] = record;
+      save(LS.USERS, users);
+    }
+    const token = "tok_" + record.id;
+    const user = { id: record.id, nickname: record.nickname, email };
+    save(LS.TOKEN, token);
+    save(LS.USER, user);
+    return delay({ token, user });
+  },
+
 
   logout() {
     if (typeof window === "undefined") return;

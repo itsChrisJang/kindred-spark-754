@@ -35,24 +35,31 @@ function Home() {
         subtitle="안녕하세요 👋"
         title="어떤 모임을 찾으세요?"
         right={
-          <button className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary" aria-label="알림">
+          <Link
+            to="/notifications"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary"
+            aria-label="알림"
+          >
             <Bell size={18} />
-          </button>
+          </Link>
         }
       />
 
       <div className="scroll-area">
-        {/* Hero */}
-        <div className="brand-gradient relative mx-4 mt-3 overflow-hidden rounded-2xl p-6">
+        {/* Hero — 클릭하면 코칭 허브로 */}
+        <Link
+          to="/coach"
+          className="brand-gradient relative mx-4 mt-3 block overflow-hidden rounded-2xl p-6"
+        >
           <div className="text-xs opacity-80">이번 주 인기</div>
           <div className="mt-1 text-lg font-bold leading-tight">
             AI가 코칭한 소개팅<br />지금 신청해보세요
           </div>
           <span className="mt-3 inline-block rounded-full bg-white/25 px-3 py-1 text-xs font-semibold">
-            모임 보러가기 →
+            AI 코칭 시작 →
           </span>
           <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-white/10" />
-        </div>
+        </Link>
 
         {/* Filter pills */}
         <div className="flex gap-2 overflow-x-auto px-4 pt-4">
@@ -80,6 +87,7 @@ function Home() {
     </PhoneShell>
   );
 }
+
 
 function MeetingCard({ m }: { m: Meeting }) {
   const closed = m.status === "CLOSED";

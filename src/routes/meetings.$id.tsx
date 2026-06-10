@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, MapPin, Users, Sparkles } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
+import { MapView, AREA_COORDS } from "@/components/MapView";
 import { api } from "@/lib/api";
+
 
 export const Route = createFileRoute("/meetings/$id")({
   head: ({ params }) => ({
@@ -77,6 +79,17 @@ function MeetingDetail() {
                 </div>
               </div>
             )}
+
+            <div className="px-4 pt-3">
+              <MapView
+                lat={(AREA_COORDS[m.location] ?? AREA_COORDS["성수동"]).lat}
+                lng={(AREA_COORDS[m.location] ?? AREA_COORDS["성수동"]).lng}
+                zoom={15}
+                height={160}
+                label={`${m.location} · ${m.venueType}`}
+              />
+            </div>
+
 
             <div className="px-4 pt-4">
               <div className="flex items-start gap-3 rounded-2xl border border-purple/15 bg-purple-light p-3.5">

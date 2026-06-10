@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PlacesRouteImport } from './routes/places'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreateRouteImport } from './routes/create'
@@ -28,6 +29,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PlacesRoute = PlacesRouteImport.update({
   id: '/places',
   path: '/places',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeRoute = MeRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/login'
     | '/me'
+    | '/notifications'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
+  NotificationsRoute: typeof NotificationsRoute
   PlacesRoute: typeof PlacesRoute
   ProfileRoute: typeof ProfileRoute
   MeetingsIdRoute: typeof MeetingsIdRoute
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       path: '/places'
       fullPath: '/places'
       preLoaderRoute: typeof PlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/me': {
@@ -251,6 +271,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
+  NotificationsRoute: NotificationsRoute,
   PlacesRoute: PlacesRoute,
   ProfileRoute: ProfileRoute,
   MeetingsIdRoute: MeetingsIdRoute,
