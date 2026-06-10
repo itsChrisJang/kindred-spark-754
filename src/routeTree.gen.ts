@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PlacesRouteImport } from './routes/places'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as CoachRouteImport } from './routes/coach'
@@ -27,6 +28,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PlacesRoute = PlacesRouteImport.update({
   id: '/places',
   path: '/places',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/places': typeof PlacesRoute
   '/profile': typeof ProfileRoute
   '/coach/chat': typeof CoachChatRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/create'
     | '/login'
+    | '/me'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/create'
     | '/login'
+    | '/me'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/create'
     | '/login'
+    | '/me'
     | '/places'
     | '/profile'
     | '/coach/chat'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   CoachRoute: typeof CoachRouteWithChildren
   CreateRoute: typeof CreateRoute
   LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
   PlacesRoute: typeof PlacesRoute
   ProfileRoute: typeof ProfileRoute
   MeetingsIdRoute: typeof MeetingsIdRoute
@@ -159,6 +172,13 @@ declare module '@tanstack/react-router' {
       path: '/places'
       fullPath: '/places'
       preLoaderRoute: typeof PlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -230,6 +250,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoachRoute: CoachRouteWithChildren,
   CreateRoute: CreateRoute,
   LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
   PlacesRoute: PlacesRoute,
   ProfileRoute: ProfileRoute,
   MeetingsIdRoute: MeetingsIdRoute,

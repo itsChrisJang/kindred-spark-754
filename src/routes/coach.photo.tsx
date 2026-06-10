@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Camera, Smile, Sun, Wand2, Bot } from "lucide-react";
+import { Camera, Smile, Sun, Wand2, Bot, RotateCcw } from "lucide-react";
 import { useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type PhotoAnalysis } from "@/lib/api";
@@ -15,20 +15,52 @@ export const Route = createFileRoute("/coach/photo")({
   component: PhotoCoach,
 });
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(new Error("이미지를 읽을 수 없어요"));
+    r.readAsDataURL(file);
+  });
+}
+
 function PhotoCoach() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const analyze = useMutation({ mutationFn: (file: File) => api.analyzePhoto(file) });
+  const analyze = useMutation({
+    mutationFn: async (file: File) => {
+      const dataUrl = await fileToDataUrl(file);
+      return api.analyzePhoto(dataUrl);
+    },
+  });
 
-  function onFile(f?: File) {
+  async function onFile(f?: File) {
     if (!f) return;
     setPreview(URL.createObjectURL(f));
     analyze.mutate(f);
   }
 
+  function reset() {
+    setPreview(null);
+    analyze.reset();
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  const scoreColor = (s: number) => (s >= 85 ? "bg-green-500 text-green-500" : s >= 70 ? "bg-amber-500 text-amber-500" : "bg-pink text-pink");
+
   return (
     <PhoneShell>
-      <NavHeader back title="AI 사진 코칭" />
+      <NavHeader
+        back
+        title="AI 사진 코칭"
+        right={
+          preview && (
+            <button onClick={reset} aria-label="다시" className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+              <RotateCcw size={14} />
+            </button>
+          )
+        }
+      />
       <div className="scroll-area">
         <div className="flex gap-3 p-4">
           <button
@@ -36,7 +68,7 @@ function PhotoCoach() {
             className="flex aspect-[3/4] max-h-56 flex-1 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-secondary"
           >
             <Camera size={32} className="text-text-3" />
-            <div className="text-xs text-text-3">사진 업로드</div>
+            <div className="text-xs text-text-3">{preview ? "다른 사진" : "사진 업로드"}</div>
           </button>
           <div className="relative flex aspect-[3/4] max-h-56 flex-1 items-end overflow-hidden rounded-2xl bg-gradient-to-br from-pink-mid to-purple-light">
             {preview ? (
@@ -47,13 +79,15 @@ function PhotoCoach() {
               </div>
             )}
             {analyze.data && (
-              <div className="z-10 w-full rounded-b-2xl bg-black/55 p-2.5 backdrop-blur">
+              <div className="z-10 w-full bg-black/55 p-2.5 backdrop-blur">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-[11px] text-white/70">첫인상 점수</div>
                     <div className="text-xl font-bold text-white">{analyze.data.score}점</div>
                   </div>
-                  <span className="tag-base bg-green-100 text-green-700">좋은 사진</span>
+                  <span className={`tag-base ${analyze.data.score >= 80 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                    {analyze.data.score >= 80 ? "좋은 사진" : "개선 여지"}
+                  </span>
                 </div>
               </div>
             )}
@@ -68,29 +102,41 @@ function PhotoCoach() {
         </div>
 
         {analyze.isPending && (
-          <div className="px-4 py-6 text-center text-sm text-text-3">AI가 분석 중이에요…</div>
+          <div className="px-4 py-6 text-center text-sm text-text-3 animate-pulse">AI가 사진을 분석 중이에요…</div>
+        )}
+        {analyze.isError && (
+          <div className="mx-4 rounded-xl bg-red-50 p-4 text-sm text-red-600">
+            {(analyze.error as Error).message}
+          </div>
         )}
 
-        {analyze.data && <Result data={analyze.data} />}
+        {!preview && !analyze.isPending && (
+          <div className="px-4 pt-4">
+            <div className="rounded-2xl border border-purple/15 bg-purple-light p-4 text-sm text-purple">
+              💡 자연광이 들어오는 곳, 상반신이 보이는 사진을 추천해요. AI가 보정 정도와 AI 생성 여부까지 판단합니다.
+            </div>
+          </div>
+        )}
+
+        {analyze.data && <Result data={analyze.data} colorOf={scoreColor} />}
       </div>
     </PhoneShell>
   );
 }
 
-function Result({ data }: { data: PhotoAnalysis }) {
+function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) => string }) {
   return (
     <>
       <h2 className="px-4 pt-1 pb-3 text-base font-semibold">분석 결과</h2>
 
       <div className="space-y-2.5 px-4">
-        <ScoreBar icon={<Smile size={18} className="text-pink" />} label="표정 자연스러움" value={data.expression} color="bg-pink" valueColor="text-pink" />
-        <ScoreBar icon={<Sun size={18} className="text-amber-500" />} label="밝기 & 배경" value={data.brightness} color="bg-amber-500" valueColor="text-amber-500" />
+        <ScoreBar icon={<Smile size={18} />} label="표정 자연스러움" value={data.expression} klass={colorOf(data.expression)} />
+        <ScoreBar icon={<Sun size={18} />} label="밝기 & 배경" value={data.brightness} klass={colorOf(data.brightness)} />
         <ScoreBar
-          icon={<Wand2 size={18} className="text-green-500" />}
+          icon={<Wand2 size={18} />}
           label="보정 정도"
           value={data.retouchScore}
-          color="bg-green-500"
-          valueColor="text-green-500"
+          klass={colorOf(data.retouchScore)}
           valueText={data.retouchLevel === "natural" ? "자연스러움" : data.retouchLevel === "moderate" ? "보통" : "과함"}
         />
         <div className="rounded-2xl border border-border bg-surface p-4">
@@ -124,17 +170,19 @@ function Result({ data }: { data: PhotoAnalysis }) {
   );
 }
 
-function ScoreBar({
-  icon, label, value, color, valueColor, valueText,
-}: { icon: React.ReactNode; label: string; value: number; color: string; valueColor: string; valueText?: string }) {
+function ScoreBar({ icon, label, value, klass, valueText }: { icon: React.ReactNode; label: string; value: number; klass: string; valueText?: string }) {
+  const [bg, text] = klass.split(" ");
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">{icon}<span className="text-sm font-medium">{label}</span></div>
-        <span className={`text-sm font-bold ${valueColor}`}>{valueText ?? value}</span>
+        <div className={`flex items-center gap-2 ${text}`}>
+          {icon}
+          <span className="text-sm font-medium text-foreground">{label}</span>
+        </div>
+        <span className={`text-sm font-bold ${text}`}>{valueText ?? value}</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
+        <div className={`h-full rounded-full ${bg}`} style={{ width: `${value}%` }} />
       </div>
     </div>
   );

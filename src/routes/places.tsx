@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Search, Star } from "lucide-react";
+import { MapPin, Search, Star, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
-import { api } from "@/lib/api";
+import { api, type DatePlace } from "@/lib/api";
 
 export const Route = createFileRoute("/places")({
   head: () => ({
@@ -16,12 +16,16 @@ export const Route = createFileRoute("/places")({
 });
 
 const CATEGORIES = ["전체", "카페", "레스토랑", "와인바", "액티비티"];
+const AREAS = ["성수동", "한남동", "강남", "홍대", "이태원", "연남동"];
 
 function Places() {
   const [cat, setCat] = useState("전체");
-  const { data: places = [], isLoading } = useQuery({
-    queryKey: ["places", cat],
-    queryFn: () => api.recommendPlaces({ category: cat }),
+  const [area, setArea] = useState("성수동");
+
+  const { data: places = [], isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["places", area, cat],
+    queryFn: () => api.recommendPlaces({ area, category: cat }),
+    staleTime: 5 * 60 * 1000,
   });
   const main = places.filter((p) => !p.isAfter);
   const after = places.filter((p) => p.isAfter);
@@ -33,10 +37,21 @@ function Places() {
         <div className="px-4 pt-3">
           <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-3.5 py-2.5">
             <Search size={16} className="text-text-3" />
-            <input
-              placeholder="장소·지역 검색"
+            <select
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
               className="flex-1 bg-transparent text-sm outline-none"
-            />
+            >
+              {AREAS.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => refetch()}
+              className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink"
+            >
+              새로 추천
+            </button>
           </div>
         </div>
 
@@ -48,7 +63,6 @@ function Places() {
           ))}
         </div>
 
-        {/* Map placeholder */}
         <div className="px-4 pt-3">
           <div className="relative h-40 overflow-hidden rounded-2xl bg-[#D8EBD3]">
             <div
@@ -64,18 +78,29 @@ function Places() {
                 key={p.id}
                 className="absolute"
                 style={{ left: `${30 + i * 18}%`, top: `${30 + (i % 2) * 18}%` }}
+                title={p.name}
               >
                 <div className="flex h-7 w-7 -rotate-45 items-center justify-center rounded-tl-full rounded-tr-full rounded-bl-full bg-pink shadow-lg">
                   <MapPin size={12} className="rotate-45 text-white" />
                 </div>
               </div>
             ))}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] backdrop-blur">
+              <Sparkles size={10} className="text-purple" />
+              AI 추천
+            </div>
           </div>
         </div>
 
-        <h2 className="px-4 pt-5 pb-3 text-base font-semibold">소개팅하기 좋은 장소</h2>
+        <h2 className="px-4 pt-5 pb-3 text-base font-semibold">
+          {area} 소개팅하기 좋은 장소
+          {isFetching && !isLoading && <span className="ml-2 text-xs text-text-3">갱신 중…</span>}
+        </h2>
         <div className="space-y-2.5 px-4">
-          {isLoading && <div className="py-6 text-center text-sm text-text-3">불러오는 중…</div>}
+          {isLoading && <div className="py-8 text-center text-sm text-text-3 animate-pulse">AI가 장소를 추천 중이에요…</div>}
+          {!isLoading && main.length === 0 && (
+            <div className="py-8 text-center text-sm text-text-3">추천된 장소가 없어요. 다시 시도해주세요.</div>
+          )}
           {main.map((p) => <PlaceCard key={p.id} p={p} />)}
         </div>
 
@@ -95,16 +120,21 @@ function Places() {
   );
 }
 
-function PlaceCard({ p }: { p: ReturnType<typeof Math.random> extends never ? never : import("@/lib/api").DatePlace }) {
+function PlaceCard({ p }: { p: DatePlace }) {
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="flex-1">
           <div className="text-[15px] font-semibold">{p.name}</div>
           <div className="mt-0.5 text-xs text-text-3">{p.address}</div>
         </div>
         <span className="tag-base bg-pink-light text-pink">{p.category}</span>
       </div>
+      {p.reason && (
+        <div className="mt-2 rounded-lg bg-secondary px-2.5 py-1.5 text-xs text-text-2">
+          ✨ {p.reason}
+        </div>
+      )}
       <div className="mt-3 flex items-center justify-between text-xs text-text-2">
         <div className="flex items-center gap-1">
           <Star size={14} className="fill-amber-400 text-amber-400" />
