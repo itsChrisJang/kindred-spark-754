@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Search, Star, Sparkles } from "lucide-react";
+import { MapPin, Search, Star } from "lucide-react";
 import { useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
+import { MapView, AREA_COORDS } from "@/components/MapView";
 import { api, type DatePlace } from "@/lib/api";
+
 
 export const Route = createFileRoute("/places")({
   head: () => ({
@@ -64,33 +66,16 @@ function Places() {
         </div>
 
         <div className="px-4 pt-3">
-          <div className="relative h-40 overflow-hidden rounded-2xl bg-[#D8EBD3]">
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-                backgroundSize: "32px 32px",
-              }}
-            />
-            {main.slice(0, 3).map((p, i) => (
-              <div
-                key={p.id}
-                className="absolute"
-                style={{ left: `${30 + i * 18}%`, top: `${30 + (i % 2) * 18}%` }}
-                title={p.name}
-              >
-                <div className="flex h-7 w-7 -rotate-45 items-center justify-center rounded-tl-full rounded-tr-full rounded-bl-full bg-pink shadow-lg">
-                  <MapPin size={12} className="rotate-45 text-white" />
-                </div>
-              </div>
-            ))}
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-[10px] backdrop-blur">
-              <Sparkles size={10} className="text-purple" />
-              AI 추천
-            </div>
-          </div>
+          <MapView
+            lat={(AREA_COORDS[area] ?? AREA_COORDS["성수동"]).lat}
+            lng={(AREA_COORDS[area] ?? AREA_COORDS["성수동"]).lng}
+            zoom={14}
+            height={180}
+            label={`${area} · AI 추천 ${main.length}곳`}
+            pins={main.slice(0, 5).map((p) => ({ lat: p.lat, lng: p.lng, label: p.name }))}
+          />
         </div>
+
 
         <h2 className="px-4 pt-5 pb-3 text-base font-semibold">
           {area} 소개팅하기 좋은 장소

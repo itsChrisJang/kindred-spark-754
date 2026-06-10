@@ -3,7 +3,9 @@ import { useMutation } from "@tanstack/react-query";
 import { Calendar, Clock, MapPin, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
+import { MapView, AREA_COORDS } from "@/components/MapView";
 import { api } from "@/lib/api";
+
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -46,16 +48,15 @@ function CreatePage() {
       <NavHeader back title="모임 만들기" />
 
       <div className="scroll-area">
-        <div className="px-5 pt-2 pb-4">
+        <div className="px-4 pt-3 pb-4">
           <div className="mb-2 text-xs text-text-3">3단계 중 1단계</div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
             <div className="h-full w-1/3 rounded-full bg-pink" />
           </div>
         </div>
 
-        <div className="h-2 bg-background" />
+        <div className="flex flex-col gap-5 px-4 pb-2">
 
-        <div className="flex flex-col gap-5 p-4">
           <Field label="모임 이름">
             <input
               className="w-full rounded-xl border border-border bg-secondary px-3.5 py-3 text-sm outline-none focus:border-pink"
@@ -133,21 +134,16 @@ function CreatePage() {
                 onChange={(e) => setLocation(e.target.value)}
               />
             </div>
-            <div className="relative mt-2 h-40 overflow-hidden rounded-2xl bg-[#D8EBD3]">
-              <div
-                className="absolute inset-0 opacity-50"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-                  backgroundSize: "32px 32px",
-                }}
+            <div className="mt-2">
+              <MapView
+                lat={(AREA_COORDS[location.split(" ")[0]] ?? AREA_COORDS["성수동"]).lat}
+                lng={(AREA_COORDS[location.split(" ")[0]] ?? AREA_COORDS["성수동"]).lng}
+                zoom={15}
+                height={160}
+                label={location}
               />
-              <div className="absolute left-[57%] top-[28%]">
-                <div className="flex h-7 w-7 -rotate-45 items-center justify-center rounded-tl-full rounded-tr-full rounded-bl-full bg-pink">
-                  <MapPin size={12} className="rotate-45 text-white" />
-                </div>
-              </div>
             </div>
+
           </Field>
 
           <div className="flex items-center gap-3 rounded-xl border border-purple/15 bg-purple-light p-3.5">

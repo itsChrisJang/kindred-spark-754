@@ -60,25 +60,26 @@ export function NavHeader({
   subtitle?: string;
 }) {
   return (
-    <header className="flex flex-shrink-0 items-center justify-between bg-surface px-5 pt-4 pb-3">
-      {back ? (
-        <Link
-          to="/"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground"
-          aria-label="뒤로"
-        >
-          ←
-        </Link>
-      ) : (
-        <div>
-          {subtitle && <div className="text-xs text-text-3">{subtitle}</div>}
-          {title && <h1 className="text-[17px] font-semibold text-foreground">{title}</h1>}
-        </div>
-      )}
-      {back && title && (
-        <h1 className="text-[17px] font-semibold text-foreground">{title}</h1>
-      )}
-      <div className="flex min-w-9 items-center justify-end">{right}</div>
+    <header className="relative flex flex-shrink-0 items-center bg-surface px-5 pt-4 pb-3">
+      <div className="flex w-10 items-center justify-start">
+        {back && (
+          <Link
+            to="/"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground"
+            aria-label="뒤로"
+          >
+            ←
+          </Link>
+        )}
+      </div>
+      <div className={`flex-1 ${back ? "text-center" : ""}`}>
+        {subtitle && !back && <div className="text-xs text-text-3">{subtitle}</div>}
+        {title && (
+          <h1 className="truncate text-[17px] font-semibold text-foreground">{title}</h1>
+        )}
+      </div>
+      <div className="flex w-10 items-center justify-end">{right}</div>
     </header>
   );
 }
+
