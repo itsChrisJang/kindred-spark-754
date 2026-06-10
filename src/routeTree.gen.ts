@@ -9,38 +9,179 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PlacesRouteImport } from './routes/places'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MeetingsIdRouteImport } from './routes/meetings.$id'
+import { Route as CoachPhotoRouteImport } from './routes/coach.photo'
+import { Route as CoachChatRouteImport } from './routes/coach.chat'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesRoute = PlacesRouteImport.update({
+  id: '/places',
+  path: '/places',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoachRoute = CoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeetingsIdRoute = MeetingsIdRouteImport.update({
+  id: '/meetings/$id',
+  path: '/meetings/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoachPhotoRoute = CoachPhotoRouteImport.update({
+  id: '/photo',
+  path: '/photo',
+  getParentRoute: () => CoachRoute,
+} as any)
+const CoachChatRoute = CoachChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => CoachRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/coach': typeof CoachRouteWithChildren
+  '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/places': typeof PlacesRoute
+  '/profile': typeof ProfileRoute
+  '/coach/chat': typeof CoachChatRoute
+  '/coach/photo': typeof CoachPhotoRoute
+  '/meetings/$id': typeof MeetingsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/coach': typeof CoachRouteWithChildren
+  '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/places': typeof PlacesRoute
+  '/profile': typeof ProfileRoute
+  '/coach/chat': typeof CoachChatRoute
+  '/coach/photo': typeof CoachPhotoRoute
+  '/meetings/$id': typeof MeetingsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/coach': typeof CoachRouteWithChildren
+  '/create': typeof CreateRoute
+  '/login': typeof LoginRoute
+  '/places': typeof PlacesRoute
+  '/profile': typeof ProfileRoute
+  '/coach/chat': typeof CoachChatRoute
+  '/coach/photo': typeof CoachPhotoRoute
+  '/meetings/$id': typeof MeetingsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/coach'
+    | '/create'
+    | '/login'
+    | '/places'
+    | '/profile'
+    | '/coach/chat'
+    | '/coach/photo'
+    | '/meetings/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/coach'
+    | '/create'
+    | '/login'
+    | '/places'
+    | '/profile'
+    | '/coach/chat'
+    | '/coach/photo'
+    | '/meetings/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/coach'
+    | '/create'
+    | '/login'
+    | '/places'
+    | '/profile'
+    | '/coach/chat'
+    | '/coach/photo'
+    | '/meetings/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CoachRoute: typeof CoachRouteWithChildren
+  CreateRoute: typeof CreateRoute
+  LoginRoute: typeof LoginRoute
+  PlacesRoute: typeof PlacesRoute
+  ProfileRoute: typeof ProfileRoute
+  MeetingsIdRoute: typeof MeetingsIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places': {
+      id: '/places'
+      path: '/places'
+      fullPath: '/places'
+      preLoaderRoute: typeof PlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coach': {
+      id: '/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof CoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +189,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meetings/$id': {
+      id: '/meetings/$id'
+      path: '/meetings/$id'
+      fullPath: '/meetings/$id'
+      preLoaderRoute: typeof MeetingsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coach/photo': {
+      id: '/coach/photo'
+      path: '/photo'
+      fullPath: '/coach/photo'
+      preLoaderRoute: typeof CoachPhotoRouteImport
+      parentRoute: typeof CoachRoute
+    }
+    '/coach/chat': {
+      id: '/coach/chat'
+      path: '/chat'
+      fullPath: '/coach/chat'
+      preLoaderRoute: typeof CoachChatRouteImport
+      parentRoute: typeof CoachRoute
+    }
   }
 }
 
+interface CoachRouteChildren {
+  CoachChatRoute: typeof CoachChatRoute
+  CoachPhotoRoute: typeof CoachPhotoRoute
+}
+
+const CoachRouteChildren: CoachRouteChildren = {
+  CoachChatRoute: CoachChatRoute,
+  CoachPhotoRoute: CoachPhotoRoute,
+}
+
+const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CoachRoute: CoachRouteWithChildren,
+  CreateRoute: CreateRoute,
+  LoginRoute: LoginRoute,
+  PlacesRoute: PlacesRoute,
+  ProfileRoute: ProfileRoute,
+  MeetingsIdRoute: MeetingsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
