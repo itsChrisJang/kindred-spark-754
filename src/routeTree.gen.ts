@@ -15,8 +15,8 @@ import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreateRouteImport } from './routes/create'
-import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoachIndexRouteImport } from './routes/coach.index'
 import { Route as MeetingsIdRouteImport } from './routes/meetings.$id'
 import { Route as CoachPhotoRouteImport } from './routes/coach.photo'
 import { Route as CoachChatRouteImport } from './routes/coach.chat'
@@ -51,14 +51,14 @@ const CreateRoute = CreateRouteImport.update({
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CoachRoute = CoachRouteImport.update({
-  id: '/coach',
-  path: '/coach',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoachIndexRoute = CoachIndexRouteImport.update({
+  id: '/coach/',
+  path: '/coach/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeetingsIdRoute = MeetingsIdRouteImport.update({
@@ -79,7 +79,6 @@ const CoachChatRoute = CoachChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
@@ -89,10 +88,10 @@ export interface FileRoutesByFullPath {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach/': typeof CoachIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
@@ -102,11 +101,11 @@ export interface FileRoutesByTo {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach': typeof CoachIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
@@ -116,12 +115,12 @@ export interface FileRoutesById {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach/': typeof CoachIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/coach'
     | '/create'
     | '/login'
     | '/me'
@@ -131,10 +130,10 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/coach'
     | '/create'
     | '/login'
     | '/me'
@@ -144,10 +143,10 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach'
   id:
     | '__root__'
     | '/'
-    | '/coach'
     | '/create'
     | '/login'
     | '/me'
@@ -157,11 +156,11 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CoachRoute: typeof CoachRouteWithChildren
   CreateRoute: typeof CreateRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
@@ -169,6 +168,7 @@ export interface RootRouteChildren {
   PlacesRoute: typeof PlacesRoute
   ProfileRoute: typeof ProfileRoute
   MeetingsIdRoute: typeof MeetingsIdRoute
+  CoachIndexRoute: typeof CoachIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -215,18 +215,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/coach': {
-      id: '/coach'
-      path: '/coach'
-      fullPath: '/coach'
-      preLoaderRoute: typeof CoachRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coach/': {
+      id: '/coach/'
+      path: '/coach'
+      fullPath: '/coach/'
+      preLoaderRoute: typeof CoachIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meetings/$id': {
@@ -253,21 +253,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface CoachRouteChildren {
-  CoachChatRoute: typeof CoachChatRoute
-  CoachPhotoRoute: typeof CoachPhotoRoute
-}
-
-const CoachRouteChildren: CoachRouteChildren = {
-  CoachChatRoute: CoachChatRoute,
-  CoachPhotoRoute: CoachPhotoRoute,
-}
-
-const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CoachRoute: CoachRouteWithChildren,
   CreateRoute: CreateRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
@@ -275,7 +262,18 @@ const rootRouteChildren: RootRouteChildren = {
   PlacesRoute: PlacesRoute,
   ProfileRoute: ProfileRoute,
   MeetingsIdRoute: MeetingsIdRoute,
+  CoachIndexRoute: CoachIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, MessageCircle, MapPin, Sparkles } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 
-export const Route = createFileRoute("/coach")({
+export const Route = createFileRoute("/coach/")({
   head: () => ({
     meta: [
       { title: "AI 코칭 — 소개팅 AI" },
