@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, MapPin, Users, Sparkles } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
+import { MapView, AREA_COORDS } from "@/components/MapView";
 import { api } from "@/lib/api";
+
 
 export const Route = createFileRoute("/meetings/$id")({
   head: ({ params }) => ({
