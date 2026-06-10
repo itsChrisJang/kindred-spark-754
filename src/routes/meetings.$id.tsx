@@ -80,6 +80,17 @@ function MeetingDetail() {
               </div>
             )}
 
+            <div className="px-4 pt-3">
+              <MapView
+                lat={(AREA_COORDS[m.location] ?? AREA_COORDS["성수동"]).lat}
+                lng={(AREA_COORDS[m.location] ?? AREA_COORDS["성수동"]).lng}
+                zoom={15}
+                height={160}
+                label={`${m.location} · ${m.venueType}`}
+              />
+            </div>
+
+
             <div className="px-4 pt-4">
               <div className="flex items-start gap-3 rounded-2xl border border-purple/15 bg-purple-light p-3.5">
                 <Sparkles size={20} className="flex-shrink-0 text-purple" />
