@@ -113,9 +113,15 @@ function MeetingCard({ m }: { m: Meeting }) {
           {m.ratio}
         </span>
       </div>
-      <div className="mb-3 flex gap-1.5">
+      <div className="mb-3 flex flex-wrap gap-1.5">
         <span className="tag-base bg-secondary text-text-2">📍 {m.location}</span>
         <span className="tag-base bg-secondary text-text-2">{venueIcon(m.venueType)} {m.venueType}</span>
+        {m.hostNickname && (
+          <span className="tag-base bg-secondary text-text-2">👤 {m.hostNickname}</span>
+        )}
+        {m.joined && !closed && (
+          <span className="tag-base bg-purple-light text-purple">참여중</span>
+        )}
       </div>
       <div className="flex items-center justify-between">
         <div className="text-xs text-text-3">

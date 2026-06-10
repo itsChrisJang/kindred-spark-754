@@ -34,12 +34,29 @@ function ChatPractice() {
   ]);
 
   const send = useMutation({
-    mutationFn: (text: string) => api.chatPractice(mode, text),
+    mutationFn: (text: string) => {
+      const history = messages.map((m) => ({
+        role: m.role === "me" ? ("user" as const) : ("assistant" as const),
+        text: m.text,
+      }));
+      return api.chatPractice(mode, text, history);
+    },
     onSuccess: (reply, text) => {
       setMessages((m) => [...m, { role: "me", text }, { role: "ai", text: reply.feedback, reply }]);
       setInput("");
     },
   });
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    const intro: Record<Mode, string> = {
+      intro: "안녕하세요! 지금부터 소개팅 자기소개를 연습해볼게요. 먼저 30초 자기소개를 해보세요 😊",
+      hobby: "취미·관심사 이야기를 연습해볼게요. 요즘 가장 빠져있는 게 뭔가요? 🎨",
+      smalltalk: "스몰토크를 연습해볼게요. 가볍게 날씨나 주말 이야기로 말 걸어보세요 ☕",
+    };
+    setMessages([{ role: "ai", text: intro[next] }]);
+    setInput("");
+  }
 
   return (
     <PhoneShell hideNav>
@@ -50,7 +67,7 @@ function ChatPractice() {
           {MODES.map((m) => (
             <button
               key={m.id}
-              onClick={() => setMode(m.id)}
+              onClick={() => switchMode(m.id)}
               className={`pill ${mode === m.id ? "pill-active" : ""}`}
             >
               {m.label}
