@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoachIndexRouteImport } from './routes/coach.index'
 import { Route as MeetingsIdRouteImport } from './routes/meetings.$id'
 import { Route as CoachPhotoRouteImport } from './routes/coach.photo'
 import { Route as CoachChatRouteImport } from './routes/coach.chat'
@@ -61,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoachIndexRoute = CoachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CoachRoute,
+} as any)
 const MeetingsIdRoute = MeetingsIdRouteImport.update({
   id: '/meetings/$id',
   path: '/meetings/$id',
@@ -89,10 +95,10 @@ export interface FileRoutesByFullPath {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach/': typeof CoachIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/coach': typeof CoachRouteWithChildren
   '/create': typeof CreateRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByTo {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach': typeof CoachIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +123,7 @@ export interface FileRoutesById {
   '/coach/chat': typeof CoachChatRoute
   '/coach/photo': typeof CoachPhotoRoute
   '/meetings/$id': typeof MeetingsIdRoute
+  '/coach/': typeof CoachIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,10 +139,10 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/coach'
     | '/create'
     | '/login'
     | '/me'
@@ -144,6 +152,7 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach'
   id:
     | '__root__'
     | '/'
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/coach/photo'
     | '/meetings/$id'
+    | '/coach/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -229,6 +239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coach/': {
+      id: '/coach/'
+      path: '/'
+      fullPath: '/coach/'
+      preLoaderRoute: typeof CoachIndexRouteImport
+      parentRoute: typeof CoachRoute
+    }
     '/meetings/$id': {
       id: '/meetings/$id'
       path: '/meetings/$id'
@@ -256,11 +273,13 @@ declare module '@tanstack/react-router' {
 interface CoachRouteChildren {
   CoachChatRoute: typeof CoachChatRoute
   CoachPhotoRoute: typeof CoachPhotoRoute
+  CoachIndexRoute: typeof CoachIndexRoute
 }
 
 const CoachRouteChildren: CoachRouteChildren = {
   CoachChatRoute: CoachChatRoute,
   CoachPhotoRoute: CoachPhotoRoute,
+  CoachIndexRoute: CoachIndexRoute,
 }
 
 const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)

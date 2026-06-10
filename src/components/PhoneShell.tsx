@@ -29,18 +29,18 @@ function BottomNav() {
     );
   };
   return (
-    <nav className="fixed inset-x-0 bottom-0 mx-auto flex h-[72px] w-full max-w-[420px] items-center justify-around border-t border-border bg-surface pb-2">
+    <nav className="fixed inset-x-0 bottom-0 mx-auto flex h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
       {item("/", Home, "홈")}
       {item("/places", Search, "탐색")}
       <Link
         to="/create"
-        className="relative flex flex-1 flex-col items-center"
+        className="flex flex-1 flex-col items-center justify-center gap-1"
         aria-label="모임 생성"
       >
-        <div className="absolute -top-4 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-pink shadow-[0_4px_16px_rgba(255,75,123,0.4)]">
-          <Plus size={24} className="text-white" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-pink shadow-[0_6px_16px_rgba(255,75,123,0.35)]">
+          <Plus size={22} className="text-white" />
         </div>
-        <span className="mt-7 text-[10px] font-medium text-pink">생성</span>
+        <span className="text-[10px] font-medium text-pink">생성</span>
       </Link>
       {item("/coach", Sparkles, "AI 코칭")}
       {item("/profile", User, "프로필")}
