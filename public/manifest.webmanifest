@@ -1,0 +1,14 @@
+{
+  "name": "소개팅 AI",
+  "short_name": "소개팅 AI",
+  "description": "AI가 코칭하는 소개팅 — 사진·대화·장소까지",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF4B7B",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
