@@ -30,7 +30,7 @@ function Login() {
             <Heart size={30} fill="white" className="text-white" />
           </div>
           <h1 className="text-[26px] font-bold leading-tight">
-            AI가 코칭하는<br />소개팅의 시작
+            AI가 코칭하는지 아는<br />소개팅의 시작
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-text-2">
             첫인상 사진부터 대화, 장소까지 — 만남 전부터 자신감 있게.
