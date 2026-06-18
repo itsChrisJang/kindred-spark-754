@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAiGateway, parseJsonLoose } from "./ai-gateway.server";
 
 // ── 1. 사진 분석 ──────────────────────────────────────
@@ -13,6 +14,7 @@ export interface PhotoAnalysisResult {
 }
 
 export const analyzePhotoFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { imageDataUrl: string }) => {
     if (!input?.imageDataUrl?.startsWith("data:image/"))
       throw new Error("올바른 이미지가 필요합니다");
@@ -75,6 +77,7 @@ export interface ChatPracticeResult {
 }
 
 export const chatPracticeFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { mode: "intro" | "hobby" | "smalltalk"; message: string; history?: { role: "user" | "assistant"; text: string }[] }) => {
     if (!input.message || input.message.length > 500)
       throw new Error("메시지를 입력해주세요 (500자 이내)");
@@ -135,6 +138,7 @@ export interface AiPlace {
 }
 
 export const recommendPlacesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { area: string; category: string }) => input)
   .handler(async ({ data }): Promise<AiPlace[]> => {
     const content = await callAiGateway({

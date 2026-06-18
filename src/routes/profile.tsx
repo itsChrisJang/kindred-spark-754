@@ -48,9 +48,8 @@ function Profile() {
     setHobbies((arr) => (arr.includes(h) ? arr.filter((x) => x !== h) : [...arr, h]));
   }
 
-  function logout() {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("profile");
+  async function logout() {
+    await api.signOut();
     location.href = "/login";
   }
 

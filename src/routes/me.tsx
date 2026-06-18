@@ -15,10 +15,10 @@ export const Route = createFileRoute("/me")({
 function Me() {
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => api.getMyProfile() });
   const { data: mine = [] } = useQuery({ queryKey: ["my-meetings"], queryFn: () => api.myMeetings() });
-  const user = api.me();
+  const { data: user } = useQuery({ queryKey: ["auth-user"], queryFn: () => api.currentUser() });
 
-  function logout() {
-    api.logout();
+  async function logout() {
+    await api.signOut();
     location.href = "/login";
   }
 
@@ -35,7 +35,7 @@ function Me() {
             <UserIcon size={24} />
           </div>
           <div className="flex-1">
-            <div className="text-[15px] font-semibold">{profile?.nickname ?? user?.nickname ?? "사용자"}</div>
+            <div className="text-[15px] font-semibold">{profile?.nickname ?? user?.email?.split("@")[0] ?? "사용자"}</div>
             <div className="mt-0.5 text-xs text-text-3">
               {profile ? `${profile.age}세 · ${profile.gender === "M" ? "남성" : "여성"}${profile.job ? ` · ${profile.job}` : ""}` : "프로필을 등록해주세요"}
             </div>
