@@ -39,6 +39,7 @@ function CreatePage() {
         startsAt: new Date(`${date}T${time}:00+09:00`).toISOString(),
         maleCapacity: Number(ratio[0]),
         femaleCapacity: Number(ratio[2]),
+        description: undefined,
       }),
     onSuccess: () => nav({ to: "/" }),
   });
