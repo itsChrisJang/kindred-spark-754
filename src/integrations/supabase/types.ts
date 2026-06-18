@@ -14,16 +14,183 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      meeting_participants: {
+        Row: {
+          gender: Database["public"]["Enums"]["gender"]
+          joined_at: string
+          meeting_id: string
+          user_id: string
+        }
+        Insert: {
+          gender: Database["public"]["Enums"]["gender"]
+          joined_at?: string
+          meeting_id: string
+          user_id: string
+        }
+        Update: {
+          gender?: Database["public"]["Enums"]["gender"]
+          joined_at?: string
+          meeting_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings_with_counts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          ai_recommended: boolean
+          created_at: string
+          description: string | null
+          female_capacity: number
+          host_id: string | null
+          id: string
+          location: string
+          male_capacity: number
+          ratio: Database["public"]["Enums"]["meeting_ratio"]
+          starts_at: string
+          status: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          venue_type: string
+        }
+        Insert: {
+          ai_recommended?: boolean
+          created_at?: string
+          description?: string | null
+          female_capacity: number
+          host_id?: string | null
+          id?: string
+          location: string
+          male_capacity: number
+          ratio: Database["public"]["Enums"]["meeting_ratio"]
+          starts_at: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          venue_type: string
+        }
+        Update: {
+          ai_recommended?: boolean
+          created_at?: string
+          description?: string | null
+          female_capacity?: number
+          host_id?: string | null
+          id?: string
+          location?: string
+          male_capacity?: number
+          ratio?: Database["public"]["Enums"]["meeting_ratio"]
+          starts_at?: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title?: string
+          venue_type?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number
+          bio: string
+          created_at: string
+          gender: Database["public"]["Enums"]["gender"]
+          hobbies: string[]
+          job: string | null
+          nickname: string
+          photos: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age: number
+          bio?: string
+          created_at?: string
+          gender: Database["public"]["Enums"]["gender"]
+          hobbies?: string[]
+          job?: string | null
+          nickname: string
+          photos?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number
+          bio?: string
+          created_at?: string
+          gender?: Database["public"]["Enums"]["gender"]
+          hobbies?: string[]
+          job?: string | null
+          nickname?: string
+          photos?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      meetings_with_counts: {
+        Row: {
+          ai_recommended: boolean | null
+          created_at: string | null
+          description: string | null
+          female_capacity: number | null
+          female_count: number | null
+          host_id: string | null
+          host_nickname: string | null
+          id: string | null
+          location: string | null
+          male_capacity: number | null
+          male_count: number | null
+          ratio: Database["public"]["Enums"]["meeting_ratio"] | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["meeting_status"] | null
+          title: string | null
+          venue_type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      join_meeting: {
+        Args: { _meeting_id: string }
+        Returns: {
+          ai_recommended: boolean
+          created_at: string
+          description: string | null
+          female_capacity: number
+          host_id: string | null
+          id: string
+          location: string
+          male_capacity: number
+          ratio: Database["public"]["Enums"]["meeting_ratio"]
+          starts_at: string
+          status: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          venue_type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "meetings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
-      [_ in never]: never
+      gender: "M" | "F"
+      meeting_ratio: "2:2" | "3:3" | "4:4" | "5:5"
+      meeting_status: "OPEN" | "CLOSED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +317,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender: ["M", "F"],
+      meeting_ratio: ["2:2", "3:3", "4:4", "5:5"],
+      meeting_status: ["OPEN", "CLOSED"],
+    },
   },
 } as const
