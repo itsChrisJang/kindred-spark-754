@@ -10,8 +10,8 @@ import { api } from "@/lib/api";
 export const Route = createFileRoute("/create")({
   head: () => ({
     meta: [
-      { title: "모임 만들기 — 소개팅 AI" },
-      { name: "description", content: "원하는 장소와 인원으로 소개팅 모임을 직접 만드세요." },
+      { title: "모임 만들기 — 포테이토" },
+      { name: "description", content: "원하는 장소와 인원으로 소개팅 모임을 직접 열어보세요." },
     ],
   }),
   component: CreatePage,

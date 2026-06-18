@@ -8,8 +8,8 @@ import { api, type Gender } from "@/lib/api";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "내 프로필 — 소개팅 AI" },
-      { name: "description", content: "닉네임·취미·자기소개를 등록하고 모임에 참여하세요." },
+      { title: "내 프로필 — 포테이토" },
+      { name: "description", content: "닉네임과 취미, 자기소개를 등록하고 모임에 참여해보세요." },
     ],
   }),
   component: Profile,
