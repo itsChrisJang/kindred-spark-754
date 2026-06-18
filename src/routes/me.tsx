@@ -69,7 +69,7 @@ function Me() {
                   <span className="tag-base bg-pink-light text-pink">{m.ratio}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-xs text-text-2">
-                  <span>📍 {m.location} · {m.venueType}</span>
+                  <span>{m.location} · {m.venueType}</span>
                   <span className={m.status === "CLOSED" ? "text-text-3" : "text-green-600"}>
                     {m.status === "CLOSED" ? "마감" : "진행 중"}
                   </span>

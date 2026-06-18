@@ -15,7 +15,7 @@ export const Route = createFileRoute("/profile")({
   component: Profile,
 });
 
-const HOBBIES = ["☕ 카페", "📷 사진", "🎬 영화", "🏃 운동", "🎮 게임", "🍷 와인", "🎵 음악", "✈️ 여행"];
+const HOBBIES = ["카페", "사진", "영화", "운동", "게임", "와인", "음악", "여행"];
 
 function Profile() {
   const qc = useQueryClient();
