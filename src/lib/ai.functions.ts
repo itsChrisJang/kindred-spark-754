@@ -177,3 +177,51 @@ export const recommendPlacesFn = createServerFn({ method: "POST" })
     const parsed = parseJsonLoose<{ places: Omit<AiPlace, "id">[] }>(content, { places: [] });
     return parsed.places.map((p, i) => ({ ...p, id: `ai-${Date.now()}-${i}` }));
   });
+
+// ── 4. 데이트 룩 추천 ──────────────────────────────
+export interface LookRecommendation {
+  title: string;
+  summary: string;
+  items: { category: string; description: string; color: string }[];
+  tips: string[];
+}
+
+export const recommendLookFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    gender: "M" | "F";
+    weather: "sunny" | "cloudy" | "rainy";
+    place: string;
+    vibe: string;
+  }) => input)
+  .handler(async ({ data }): Promise<LookRecommendation> => {
+    const weatherLabel = data.weather === "sunny" ? "맑음" : data.weather === "cloudy" ? "흐림" : "비";
+    const genderLabel = data.gender === "M" ? "남성" : "여성";
+    const content = await callAiGateway({
+      responseFormat: "json_object",
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content:
+            "당신은 한국의 데이트 룩 스타일리스트입니다. 결과는 JSON으로만 답하고, 친근한 한국어로 작성합니다.",
+        },
+        {
+          role: "user",
+          content: `오늘 ${weatherLabel} 날씨에 ${data.place}에서 만나는 ${genderLabel}을(를) 위해 "${data.vibe}" 분위기의 데이트 룩을 추천하세요. JSON 스키마:
+{
+  "title": "<코디 이름>",
+  "summary": "<2-3문장의 코디 소개>",
+  "items": [{"category": "<상의/하의/아우터/신발/액세서리 등>", "description": "<구체 아이템 한 줄>", "color": "<색상>"}],
+  "tips": ["<스타일링 팁 2-3개>"]
+}`,
+        },
+      ],
+    });
+    return parseJsonLoose<LookRecommendation>(content, {
+      title: "데일리 룩",
+      summary: "편안하고 단정한 데이트 룩이에요.",
+      items: [],
+      tips: [],
+    });
+  });

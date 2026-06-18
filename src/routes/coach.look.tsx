@@ -147,7 +147,7 @@ function Result({ data }: { data: LookRecommendation }) {
       </div>
 
       <div className="space-y-2">
-        {data.items.map((it, i) => (
+        {data.items.map((it: { category: string; description: string; color: string }, i: number) => (
           <div key={i} className="rounded-xl border border-border bg-surface p-3">
             <div className="flex items-center justify-between">
               <div className="text-[13px] font-semibold">{it.category}</div>
@@ -158,11 +158,11 @@ function Result({ data }: { data: LookRecommendation }) {
         ))}
       </div>
 
-      {data.tips?.length > 0 && (
+      {data.tips && data.tips.length > 0 && (
         <div className="rounded-2xl border border-purple/15 bg-purple-light p-4">
           <div className="text-[13px] font-semibold text-purple">스타일링 팁</div>
           <ul className="mt-2 space-y-1 text-[12px] leading-relaxed text-purple/90">
-            {data.tips.map((t, i) => (
+            {data.tips.map((t: string, i: number) => (
               <li key={i}>· {t}</li>
             ))}
           </ul>
