@@ -135,11 +135,14 @@ export interface AiPlace {
   lat: number;
   lng: number;
   reason: string;
+  priceRange: string;
+  menuExamples: string[];
+  imageQuery: string;
 }
 
 export const recommendPlacesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { area: string; category: string }) => input)
+  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) => input)
   .handler(async ({ data }): Promise<AiPlace[]> => {
     const content = await callAiGateway({
       responseFormat: "json_object",
@@ -153,20 +156,23 @@ export const recommendPlacesFn = createServerFn({ method: "POST" })
         {
           role: "user",
           content: `"${data.area}" 지역에서 소개팅·데이트하기 좋은 ${data.category === "전체" ? "장소" : data.category} 4곳을 추천하세요.
-3개는 메인(카페·식당), 1개는 애프터(와인바·디저트) 용도. 아래 JSON 스키마로만:
+${data.priceRange ? `가격대: ${data.priceRange}. ` : ""}${data.mood ? `분위기: ${data.mood}. ` : ""}3개는 메인(카페·식당), 1개는 애프터(와인바·디저트). 아래 JSON 스키마로만:
 {
   "places": [
     {
       "name": "<실제 가게 이름>",
       "category": "카페" | "레스토랑" | "와인바" | "액티비티",
       "address": "<도로명 주소>",
-      "distanceKm": <소수 1자리 가상 거리, 0.3~3.0>,
-      "rating": <4.0~4.9 소수>,
-      "reviewCount": <100~3000 정수>,
+      "distanceKm": <0.3~3.0>,
+      "rating": <4.0~4.9>,
+      "reviewCount": <100~3000>,
       "lat": <위도>,
       "lng": <경도>,
-      "isAfter": <bool, 애프터 장소면 true>,
-      "reason": "<소개팅에 좋은 이유 한 줄, 한국어>"
+      "isAfter": <bool>,
+      "reason": "<소개팅에 좋은 이유 한 줄>",
+      "priceRange": "<1인 가격대, 예: '1.5만~2.5만원'>",
+      "menuExamples": ["<대표 메뉴 2-3개>"],
+      "imageQuery": "<영문 unsplash 검색어, 예: 'cozy seoul cafe interior'>"
     }
   ]
 }`,
