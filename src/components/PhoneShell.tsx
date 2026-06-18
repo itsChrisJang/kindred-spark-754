@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Plus, Sparkles, User } from "lucide-react";
+import { Home, Search, Sparkles, User, CalendarHeart } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function PhoneShell({ children, hideNav }: { children: ReactNode; hideNav?: boolean }) {
@@ -31,18 +31,18 @@ function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto flex h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
       {item("/", Home, "홈")}
-      {item("/places", Search, "탐색")}
+      {item("/places", Search, "장소")}
       <Link
-        to="/create"
+        to="/coach"
         className="flex flex-1 flex-col items-center justify-center gap-1"
-        aria-label="모임 생성"
+        aria-label="AI 소개팅 도우미"
       >
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-pink shadow-[0_6px_16px_rgba(255,75,123,0.35)]">
-          <Plus size={22} className="text-white" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple shadow-[0_6px_16px_rgba(255,75,123,0.35)]">
+          <Sparkles size={22} className="text-white" />
         </div>
-        <span className="text-[10px] font-medium text-pink">생성</span>
+        <span className="text-[10px] font-medium text-pink">AI 도우미</span>
       </Link>
-      {item("/coach", Sparkles, "AI 코칭")}
+      {item("/me", CalendarHeart, "내 모임")}
       {item("/profile", User, "프로필")}
     </nav>
   );
@@ -82,4 +82,3 @@ export function NavHeader({
     </header>
   );
 }
-
