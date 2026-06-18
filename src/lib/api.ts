@@ -84,6 +84,9 @@ export interface DatePlace {
   lat: number;
   lng: number;
   reason?: string;
+  priceRange?: string;
+  menuExamples?: string[];
+  imageQuery?: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────
@@ -253,6 +256,8 @@ export const api = {
   async recommendPlaces(input: {
     area: string;
     category: string;
+    priceRange?: string;
+    mood?: string;
   }): Promise<DatePlace[]> {
     return recommendPlacesFn({ data: input });
   },
