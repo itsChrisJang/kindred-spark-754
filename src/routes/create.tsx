@@ -17,13 +17,13 @@ export const Route = createFileRoute("/create")({
   component: CreatePage,
 });
 
-const CATEGORIES = ["☕ 카페", "🍷 레스토랑", "🎮 게임", "🎬 영화", "🏃 액티비티", "🎵 공연"];
+const CATEGORIES = ["카페", "레스토랑", "게임", "영화", "액티비티", "공연"];
 const RATIOS: ("2:2" | "3:3" | "4:4" | "5:5")[] = ["2:2", "3:3", "4:4", "5:5"];
 
 function CreatePage() {
   const nav = useNavigate();
   const [title, setTitle] = useState("성수 감성 카페 소개팅");
-  const [category, setCategory] = useState("☕ 카페");
+  const [category, setCategory] = useState("카페");
   const [ratio, setRatio] = useState<(typeof RATIOS)[number]>("3:3");
   const [date, setDate] = useState("2026-06-15");
   const [time, setTime] = useState("16:00");
@@ -34,7 +34,7 @@ function CreatePage() {
       api.createMeeting({
         title,
         location: location.split(" ")[0],
-        venueType: category.replace(/^\S+\s/, ""),
+        venueType: category,
         ratio,
         startsAt: new Date(`${date}T${time}:00+09:00`).toISOString(),
         maleCapacity: Number(ratio[0]),

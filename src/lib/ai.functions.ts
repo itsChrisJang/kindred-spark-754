@@ -135,11 +135,14 @@ export interface AiPlace {
   lat: number;
   lng: number;
   reason: string;
+  priceRange: string;
+  menuExamples: string[];
+  imageQuery: string;
 }
 
 export const recommendPlacesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { area: string; category: string }) => input)
+  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) => input)
   .handler(async ({ data }): Promise<AiPlace[]> => {
     const content = await callAiGateway({
       responseFormat: "json_object",
@@ -153,20 +156,23 @@ export const recommendPlacesFn = createServerFn({ method: "POST" })
         {
           role: "user",
           content: `"${data.area}" 지역에서 소개팅·데이트하기 좋은 ${data.category === "전체" ? "장소" : data.category} 4곳을 추천하세요.
-3개는 메인(카페·식당), 1개는 애프터(와인바·디저트) 용도. 아래 JSON 스키마로만:
+${data.priceRange ? `가격대: ${data.priceRange}. ` : ""}${data.mood ? `분위기: ${data.mood}. ` : ""}3개는 메인(카페·식당), 1개는 애프터(와인바·디저트). 아래 JSON 스키마로만:
 {
   "places": [
     {
       "name": "<실제 가게 이름>",
       "category": "카페" | "레스토랑" | "와인바" | "액티비티",
       "address": "<도로명 주소>",
-      "distanceKm": <소수 1자리 가상 거리, 0.3~3.0>,
-      "rating": <4.0~4.9 소수>,
-      "reviewCount": <100~3000 정수>,
+      "distanceKm": <0.3~3.0>,
+      "rating": <4.0~4.9>,
+      "reviewCount": <100~3000>,
       "lat": <위도>,
       "lng": <경도>,
-      "isAfter": <bool, 애프터 장소면 true>,
-      "reason": "<소개팅에 좋은 이유 한 줄, 한국어>"
+      "isAfter": <bool>,
+      "reason": "<소개팅에 좋은 이유 한 줄>",
+      "priceRange": "<1인 가격대, 예: '1.5만~2.5만원'>",
+      "menuExamples": ["<대표 메뉴 2-3개>"],
+      "imageQuery": "<영문 unsplash 검색어, 예: 'cozy seoul cafe interior'>"
     }
   ]
 }`,
@@ -176,4 +182,52 @@ export const recommendPlacesFn = createServerFn({ method: "POST" })
 
     const parsed = parseJsonLoose<{ places: Omit<AiPlace, "id">[] }>(content, { places: [] });
     return parsed.places.map((p, i) => ({ ...p, id: `ai-${Date.now()}-${i}` }));
+  });
+
+// ── 4. 데이트 룩 추천 ──────────────────────────────
+export interface LookRecommendation {
+  title: string;
+  summary: string;
+  items: { category: string; description: string; color: string }[];
+  tips: string[];
+}
+
+export const recommendLookFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    gender: "M" | "F";
+    weather: "sunny" | "cloudy" | "rainy";
+    place: string;
+    vibe: string;
+  }) => input)
+  .handler(async ({ data }): Promise<LookRecommendation> => {
+    const weatherLabel = data.weather === "sunny" ? "맑음" : data.weather === "cloudy" ? "흐림" : "비";
+    const genderLabel = data.gender === "M" ? "남성" : "여성";
+    const content = await callAiGateway({
+      responseFormat: "json_object",
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content:
+            "당신은 한국의 데이트 룩 스타일리스트입니다. 결과는 JSON으로만 답하고, 친근한 한국어로 작성합니다.",
+        },
+        {
+          role: "user",
+          content: `오늘 ${weatherLabel} 날씨에 ${data.place}에서 만나는 ${genderLabel}을(를) 위해 "${data.vibe}" 분위기의 데이트 룩을 추천하세요. JSON 스키마:
+{
+  "title": "<코디 이름>",
+  "summary": "<2-3문장의 코디 소개>",
+  "items": [{"category": "<상의/하의/아우터/신발/액세서리 등>", "description": "<구체 아이템 한 줄>", "color": "<색상>"}],
+  "tips": ["<스타일링 팁 2-3개>"]
+}`,
+        },
+      ],
+    });
+    return parseJsonLoose<LookRecommendation>(content, {
+      title: "데일리 룩",
+      summary: "편안하고 단정한 데이트 룩이에요.",
+      items: [],
+      tips: [],
+    });
   });

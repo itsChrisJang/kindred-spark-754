@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, MapPin, Users, Sparkles } from "lucide-react";
+import { Calendar, MapPin, Users, Sparkles, User as UserIcon, Tag } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
 import { api } from "@/lib/api";
 
-
 export const Route = createFileRoute("/meetings/$id")({
-  head: ({ params }) => ({
+  head: () => ({
     meta: [
-      { title: `모임 상세 — 소개팅 AI` },
+      { title: "모임 정보 — 소개팅 AI" },
       { name: "description", content: "모임 정보를 확인하고 참여 신청하세요." },
     ],
   }),
@@ -38,23 +37,26 @@ function MeetingDetail() {
 
   return (
     <PhoneShell hideNav>
-      <NavHeader back title="모임 상세" />
+      <NavHeader back title={m?.title ?? "모임"} />
       <div className="scroll-area-no-nav pb-6">
         {isLoading && <div className="p-6 text-center text-sm text-text-3">불러오는 중…</div>}
         {m && (
           <>
             <div className="brand-gradient p-6 text-white">
-              <div className="text-xs opacity-80">
-                {m.location} · {m.venueType}
-                {m.hostNickname && <> · 호스트 {m.hostNickname}</>}
-              </div>
-              <h1 className="mt-1 text-xl font-bold">{m.title}</h1>
+              <h1 className="text-xl font-bold leading-tight">{m.title}</h1>
               <div className="mt-3 inline-block rounded-full bg-white/25 px-3 py-1 text-xs font-semibold">
                 {m.ratio} 매칭
               </div>
             </div>
 
-            <div className="space-y-3 p-4">
+            {/* 위치 / 카테고리 / 호스트 명확히 분리 */}
+            <div className="grid grid-cols-3 gap-2 p-4">
+              <Facet icon={<MapPin size={16} className="text-pink" />} label="위치" value={m.location} />
+              <Facet icon={<Tag size={16} className="text-pink" />} label="카테고리" value={m.venueType} />
+              <Facet icon={<UserIcon size={16} className="text-pink" />} label="호스트" value={m.hostNickname ?? "—"} />
+            </div>
+
+            <div className="space-y-3 px-4">
               <InfoRow
                 icon={<Calendar size={18} className="text-pink" />}
                 text={new Date(m.startsAt).toLocaleString("ko-KR", {
@@ -65,7 +67,6 @@ function MeetingDetail() {
                   minute: "2-digit",
                 })}
               />
-              <InfoRow icon={<MapPin size={18} className="text-pink" />} text={`${m.location} 일대`} />
               <InfoRow
                 icon={<Users size={18} className="text-pink" />}
                 text={`남성 ${m.maleCount}/${m.maleCapacity} · 여성 ${m.femaleCount}/${m.femaleCapacity}`}
@@ -73,7 +74,7 @@ function MeetingDetail() {
             </div>
 
             {m.description && (
-              <div className="px-4">
+              <div className="px-4 pt-3">
                 <div className="rounded-2xl border border-border bg-surface p-4 text-sm leading-relaxed text-text-2">
                   {m.description}
                 </div>
@@ -89,7 +90,6 @@ function MeetingDetail() {
                 label={`${m.location} · ${m.venueType}`}
               />
             </div>
-
 
             <div className="px-4 pt-4">
               <div className="flex items-start gap-3 rounded-2xl border border-purple/15 bg-purple-light p-3.5">
@@ -129,6 +129,18 @@ function MeetingDetail() {
         )}
       </div>
     </PhoneShell>
+  );
+}
+
+function Facet({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-3">
+      <div className="flex items-center gap-1 text-[11px] text-text-3">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-1 truncate text-[13px] font-semibold text-foreground">{value}</div>
+    </div>
   );
 }
 

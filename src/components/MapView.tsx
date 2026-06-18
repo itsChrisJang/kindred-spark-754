@@ -109,7 +109,7 @@ export function MapView({
     if (label) {
       const iw = new kakao.maps.InfoWindow({
         position: new kakao.maps.LatLng(lat, lng),
-        content: `<div style="padding:4px 8px;font-size:11px;font-weight:500;">📍 ${label}</div>`,
+        content: `<div style="padding:4px 8px;font-size:11px;font-weight:500;">${label}</div>`,
       });
       iw.open(map, center);
       markersRef.current.push({ setMap: () => iw.close() });

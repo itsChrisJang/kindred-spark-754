@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
-import { useState } from "react";
+import { Bell, Plus } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type Meeting } from "@/lib/api";
 
@@ -20,19 +19,32 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const RATIOS = ["전체", "2:2", "3:3", "4:4"];
+// 영역별 썸네일 (Unsplash)
+const AREA_THUMB: Record<string, string> = {
+  성수동: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800&q=70&auto=format&fit=crop",
+  한남동: "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=800&q=70&auto=format&fit=crop",
+  강남: "https://images.unsplash.com/photo-1538485399081-7c8970d8a4f7?w=800&q=70&auto=format&fit=crop",
+  홍대: "https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?w=800&q=70&auto=format&fit=crop",
+  이태원: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=70&auto=format&fit=crop",
+  연남동: "https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&q=70&auto=format&fit=crop",
+};
+const FALLBACK_THUMB =
+  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=70&auto=format&fit=crop";
+
+function thumbFor(m: Meeting) {
+  return AREA_THUMB[m.location] ?? FALLBACK_THUMB;
+}
 
 function Home() {
-  const [ratio, setRatio] = useState("전체");
   const { data: meetings = [], isLoading } = useQuery({
-    queryKey: ["meetings", ratio],
-    queryFn: () => api.listMeetings({ ratio }),
+    queryKey: ["meetings"],
+    queryFn: () => api.listMeetings(),
   });
 
   return (
     <PhoneShell>
       <NavHeader
-        subtitle="안녕하세요 👋"
+        subtitle="안녕하세요"
         title="어떤 모임을 찾으세요?"
         right={
           <Link
@@ -46,7 +58,6 @@ function Home() {
       />
 
       <div className="scroll-area">
-        {/* Hero — 클릭하면 코칭 허브로 */}
         <Link
           to="/coach"
           className="brand-gradient relative mx-4 mt-3 block overflow-hidden rounded-2xl p-6"
@@ -61,22 +72,17 @@ function Home() {
           <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-white/10" />
         </Link>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto px-4 pt-4">
-          {RATIOS.map((r) => (
-            <button
-              key={r}
-              onClick={() => setRatio(r)}
-              className={`pill ${ratio === r ? "pill-active" : ""}`}
-            >
-              {r}
-            </button>
-          ))}
+        <div className="flex items-center justify-between px-4 pt-5 pb-3">
+          <h2 className="text-base font-semibold">모집 중인 모임</h2>
+          <Link
+            to="/create"
+            className="flex items-center gap-1 rounded-full bg-pink-light px-3 py-1.5 text-xs font-semibold text-pink"
+          >
+            <Plus size={14} /> 모임 만들기
+          </Link>
         </div>
 
-        <h2 className="px-4 pt-5 pb-3 text-base font-semibold">모집 중인 모임</h2>
-
-        <div className="space-y-2.5 px-4">
+        <div className="space-y-3 px-4">
           {isLoading && <div className="py-8 text-center text-sm text-text-3">불러오는 중…</div>}
           {meetings.map((m) => (
             <MeetingCard key={m.id} m={m} />
@@ -87,7 +93,6 @@ function Home() {
     </PhoneShell>
   );
 }
-
 
 function MeetingCard({ m }: { m: Meeting }) {
   const closed = m.status === "CLOSED";
@@ -102,60 +107,66 @@ function MeetingCard({ m }: { m: Meeting }) {
     <Link
       to="/meetings/$id"
       params={{ id: m.id }}
-      className={`block rounded-2xl border border-border bg-surface p-4 ${closed ? "opacity-55" : ""}`}
+      className={`block overflow-hidden rounded-2xl border border-border bg-surface ${closed ? "opacity-55" : ""}`}
     >
-      <div className="mb-2.5 flex items-start justify-between gap-2">
-        <div>
-          <div className="text-[15px] font-semibold text-foreground">{m.title}</div>
-          <div className="mt-0.5 text-xs text-text-3">{dateStr}</div>
-        </div>
-        <span
-          className={`tag-base ${
-            closed
-              ? "bg-secondary text-text-3"
-              : m.ratio === "2:2"
-                ? "bg-purple-light text-purple"
-                : "bg-pink-light text-pink"
-          }`}
-        >
-          {m.ratio}
-        </span>
-      </div>
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        <span className="tag-base bg-secondary text-text-2">📍 {m.location}</span>
-        <span className="tag-base bg-secondary text-text-2">{venueIcon(m.venueType)} {m.venueType}</span>
-        {m.hostNickname && (
-          <span className="tag-base bg-secondary text-text-2">👤 {m.hostNickname}</span>
-        )}
-        {m.joined && !closed && (
-          <span className="tag-base bg-purple-light text-purple">참여중</span>
-        )}
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="text-xs text-text-3">
-          남성 {m.maleCount}/{m.maleCapacity} · 여성 {m.femaleCount}/{m.femaleCapacity}
-        </div>
-        {closed ? (
-          <span className="flex items-center gap-1 text-xs text-text-3">
-            <span className="h-2 w-2 rounded-full bg-red-500" /> 마감
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
+        <img
+          src={thumbFor(m)}
+          alt={`${m.location} ${m.venueType}`}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute right-2 top-2">
+          <span
+            className={`tag-base ${
+              closed
+                ? "bg-black/60 text-white"
+                : m.ratio === "2:2"
+                  ? "bg-purple text-white"
+                  : "bg-pink text-white"
+            }`}
+          >
+            {m.ratio}
           </span>
-        ) : femaleLeft > 0 && m.femaleCount === 0 ? (
-          <span className="tag-base bg-amber-50 text-amber-600">여성 모집중</span>
-        ) : (
-          <span className="flex items-center gap-1 text-xs text-text-3">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
-            {femaleLeft > 0 ? `여성 ${femaleLeft}자리` : `남성 ${maleLeft}자리`}
-          </span>
-        )}
+        </div>
+      </div>
+      <div className="p-4">
+        <div className="text-[15px] font-semibold text-foreground">{m.title}</div>
+        <div className="mt-0.5 text-xs text-text-3">{dateStr}</div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+          <Info label="위치" value={m.location} />
+          <Info label="카테고리" value={m.venueType} />
+          <Info label="호스트" value={m.hostNickname ?? "—"} />
+        </div>
+
+        <div className="mt-3 flex items-center justify-between">
+          <div className="text-xs text-text-3">
+            남성 {m.maleCount}/{m.maleCapacity} · 여성 {m.femaleCount}/{m.femaleCapacity}
+          </div>
+          {closed ? (
+            <span className="flex items-center gap-1 text-xs text-text-3">
+              <span className="h-2 w-2 rounded-full bg-red-500" /> 마감
+            </span>
+          ) : femaleLeft > 0 && m.femaleCount === 0 ? (
+            <span className="tag-base bg-amber-50 text-amber-600">여성 모집중</span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs text-text-3">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              {femaleLeft > 0 ? `여성 ${femaleLeft}자리` : `남성 ${maleLeft}자리`}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );
 }
 
-function venueIcon(v: string) {
-  if (v.includes("카페")) return "☕";
-  if (v.includes("바") || v.includes("와인")) return "🍷";
-  if (v.includes("클럽")) return "🎵";
-  if (v.includes("레스토랑")) return "🍽️";
-  return "📍";
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-secondary px-2 py-1.5">
+      <div className="text-[10px] text-text-3">{label}</div>
+      <div className="mt-0.5 truncate text-[12px] font-medium text-foreground">{value}</div>
+    </div>
+  );
 }

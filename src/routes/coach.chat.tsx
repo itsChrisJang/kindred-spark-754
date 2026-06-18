@@ -52,7 +52,7 @@ function ChatPractice() {
     const intro: Record<Mode, string> = {
       intro: "안녕하세요! 지금부터 소개팅 자기소개를 연습해볼게요. 먼저 30초 자기소개를 해보세요 😊",
       hobby: "취미·관심사 이야기를 연습해볼게요. 요즘 가장 빠져있는 게 뭔가요? 🎨",
-      smalltalk: "스몰토크를 연습해볼게요. 가볍게 날씨나 주말 이야기로 말 걸어보세요 ☕",
+      smalltalk: "스몰토크를 연습해볼게요. 가볍게 날씨나 주말 이야기로 말 걸어보세요.",
     };
     setMessages([{ role: "ai", text: intro[next] }]);
     setInput("");

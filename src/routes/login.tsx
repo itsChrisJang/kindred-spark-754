@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Heart, Shield } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,6 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const nav = useNavigate();
 
-  // 이미 로그인된 사용자는 홈으로
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
@@ -36,34 +35,6 @@ function Login() {
         redirect_uri: window.location.origin,
       });
       if (result.error) throw result.error;
-      // result.redirected === true 면 브라우저가 곧 Google로 이동
-    },
-    onSuccess: () => {
-      // 토큰을 받은 경우 (managed flow가 즉시 세션 설정)
-      nav({ to: "/" });
-    },
-  });
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-
-  const emailAuth = useMutation({
-    mutationFn: async () => {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-      }
     },
     onSuccess: () => nav({ to: "/" }),
   });
@@ -76,7 +47,7 @@ function Login() {
             <Heart size={30} fill="white" className="text-white" />
           </div>
           <h1 className="text-[26px] font-bold leading-tight">
-            AI가 코칭하도록 하는<br />소개팅의 시작
+            AI가 코칭하는<br />소개팅의 시작
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-text-2">
             첫인상 사진부터 대화, 장소까지 — 만남 전부터 자신감 있게.
@@ -86,73 +57,14 @@ function Login() {
             <Shield size={16} className="mt-0.5 flex-shrink-0 text-purple" />
             <div className="text-[12px] leading-relaxed text-text-2">
               <span className="font-semibold text-foreground">
-                구글 또는 이메일로 안전하게 로그인하세요.
+                구글 계정으로 안전하게 로그인하세요.
               </span>{" "}
-              비밀번호는 암호화되어 저장되며, 모든 데이터는 본인만 접근 가능합니다.
+              개인정보는 암호화되어 보호되며, 본인만 접근할 수 있습니다.
             </div>
           </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (email && password.length >= 6 && !emailAuth.isPending)
-                emailAuth.mutate();
-            }}
-            className="mt-6 space-y-2"
-          >
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-border bg-secondary px-3.5 py-3 text-sm outline-none focus:border-pink"
-            />
-            <input
-              type="password"
-              required
-              minLength={6}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              placeholder="비밀번호 (6자 이상)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-border bg-secondary px-3.5 py-3 text-sm outline-none focus:border-pink"
-            />
-            <button
-              type="submit"
-              disabled={emailAuth.isPending}
-              className="flex h-11 w-full items-center justify-center rounded-xl bg-pink text-[14px] font-semibold text-white disabled:opacity-50"
-            >
-              {emailAuth.isPending
-                ? "처리 중…"
-                : mode === "signup"
-                  ? "이메일로 회원가입"
-                  : "이메일로 로그인"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-              className="w-full pt-1 text-center text-xs text-text-3"
-            >
-              {mode === "signup"
-                ? "이미 계정이 있어요 — 로그인"
-                : "처음이세요? — 회원가입"}
-            </button>
-            {emailAuth.isError && (
-              <div className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">
-                {(emailAuth.error as Error).message}
-              </div>
-            )}
-          </form>
         </div>
 
         <div className="pt-6">
-          <div className="mb-3 flex items-center gap-2 text-[11px] text-text-3">
-            <div className="h-px flex-1 bg-border" />
-            또는
-            <div className="h-px flex-1 bg-border" />
-          </div>
           <button
             onClick={() => google.mutate()}
             disabled={google.isPending}

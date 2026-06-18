@@ -113,7 +113,7 @@ function PhotoCoach() {
         {!preview && !analyze.isPending && (
           <div className="px-4 pt-4">
             <div className="rounded-2xl border border-purple/15 bg-purple-light p-4 text-sm text-purple">
-              💡 자연광이 들어오는 곳, 상반신이 보이는 사진을 추천해요. AI가 보정 정도와 AI 생성 여부까지 판단합니다.
+              자연광이 들어오는 곳에서 상반신이 보이는 사진을 추천해요. AI가 보정 정도와 AI 생성 여부까지 판단합니다.
             </div>
           </div>
         )}
@@ -157,11 +157,13 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
         {data.tips.map((t, i) => (
           <div
             key={i}
-            className={`flex gap-2.5 rounded-xl p-3 text-sm leading-relaxed ${
+            className={`rounded-xl p-3 text-sm leading-relaxed ${
               t.type === "good" ? "bg-purple-light text-purple" : "bg-pink-light text-pink"
             }`}
           >
-            <span>{t.type === "good" ? "✨" : "💡"}</span>
+            <div className="mb-1 text-[11px] font-semibold opacity-70">
+              {t.type === "good" ? "좋아요" : "개선 포인트"}
+            </div>
             <div>{t.text}</div>
           </div>
         ))}
