@@ -9,8 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "로그인 — 소개팅 AI" },
-      { name: "description", content: "구글로 간편하게 시작하세요." },
+      { title: "로그인 — 포테이토" },
+      { name: "description", content: "구글 계정으로 간편하게 시작해보세요." },
     ],
   }),
   component: Login,
@@ -47,10 +47,10 @@ function Login() {
             <Heart size={30} fill="white" className="text-white" />
           </div>
           <h1 className="text-[26px] font-bold leading-tight">
-            AI가 코칭하는<br />소개팅의 시작
+            소개팅,<br />조금 더 잘 준비해볼까요?
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-text-2">
-            첫인상 사진부터 대화, 장소까지 — 만남 전부터 자신감 있게.
+            사진, 대화, 장소까지 — 만남 전부터 차분히 챙겨드릴게요.
           </p>
 
           <div className="mt-6 flex items-start gap-2 rounded-2xl border border-border bg-secondary p-3.5">

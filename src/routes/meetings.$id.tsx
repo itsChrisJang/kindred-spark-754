@@ -8,8 +8,8 @@ import { api } from "@/lib/api";
 export const Route = createFileRoute("/meetings/$id")({
   head: () => ({
     meta: [
-      { title: "모임 정보 — 소개팅 AI" },
-      { name: "description", content: "모임 정보를 확인하고 참여 신청하세요." },
+      { title: "모임 정보 — 포테이토" },
+      { name: "description", content: "모임의 분위기와 인원, 장소를 확인하고 신청해보세요." },
     ],
   }),
   component: MeetingDetail,

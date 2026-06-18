@@ -7,13 +7,16 @@ import { api, type Meeting } from "@/lib/api";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "소개팅 AI — 모임 찾기" },
+      { title: "포테이토 — 모임 둘러보기" },
       {
         name: "description",
-        content: "AI가 코칭하는 소개팅. 모임을 둘러보고 첫인상 사진·대화·장소까지 한번에 준비하세요.",
+        content: "관심 가는 모임을 둘러보고, 소개팅 전 사진과 대화, 장소까지 차분하게 준비해보세요.",
       },
-      { property: "og:title", content: "소개팅 AI" },
-      { property: "og:description", content: "AI가 코칭하는 소개팅 플랫폼" },
+      { property: "og:title", content: "포테이토 — 모임 둘러보기" },
+      {
+        property: "og:description",
+        content: "관심 가는 모임을 둘러보고, 소개팅 전 사진과 대화, 장소까지 차분하게 준비해보세요.",
+      },
     ],
   }),
   component: Home,
@@ -45,7 +48,7 @@ function Home() {
     <PhoneShell>
       <NavHeader
         subtitle="안녕하세요"
-        title="어떤 모임을 찾으세요?"
+        title="오늘은 어떤 모임이 끌리세요?"
         right={
           <Link
             to="/notifications"
@@ -62,12 +65,12 @@ function Home() {
           to="/coach"
           className="brand-gradient relative mx-4 mt-3 block overflow-hidden rounded-2xl p-6"
         >
-          <div className="text-xs opacity-80">이번 주 인기</div>
+          <div className="text-xs opacity-80">소개팅 전, 잠깐</div>
           <div className="mt-1 text-lg font-bold leading-tight">
-            AI가 코칭한 소개팅<br />지금 신청해보세요
+            사진부터 대화까지<br />함께 준비해드릴게요
           </div>
           <span className="mt-3 inline-block rounded-full bg-white/25 px-3 py-1 text-xs font-semibold">
-            AI 코칭 시작 →
+            준비 시작하기 →
           </span>
           <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-white/10" />
         </Link>
