@@ -62,28 +62,29 @@ function PhotoCoach() {
         }
       />
       <div className="scroll-area">
-        <div className="flex gap-3 p-4">
+        <div className="p-4">
           <button
+            type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex aspect-[3/4] max-h-56 flex-1 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-secondary"
+            className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border-2 border-dashed border-border bg-gradient-to-br from-pink-mid to-purple-light"
           >
-            <Camera size={32} className="text-text-3" />
-            <div className="text-xs text-text-3">{preview ? "다른 사진" : "사진 업로드"}</div>
-          </button>
-          <div className="relative flex aspect-[3/4] max-h-56 flex-1 items-end overflow-hidden rounded-2xl bg-gradient-to-br from-pink-mid to-purple-light">
             {preview ? (
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-white/50">
-                <Camera size={48} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+                  <Camera size={28} />
+                </div>
+                <div className="text-sm font-semibold">사진을 업로드해 주세요</div>
+                <div className="text-xs text-white/80">탭하여 갤러리에서 선택</div>
               </div>
             )}
             {analyze.data && (
-              <div className="z-10 w-full bg-black/55 p-2.5 backdrop-blur">
+              <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="text-left">
                     <div className="text-[11px] text-white/70">첫인상 점수</div>
-                    <div className="text-xl font-bold text-white">{analyze.data.score}점</div>
+                    <div className="text-2xl font-bold text-white">{analyze.data.score}점</div>
                   </div>
                   <span className={`tag-base ${analyze.data.score >= 80 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                     {analyze.data.score >= 80 ? "좋은 사진" : "개선 여지"}
@@ -91,7 +92,19 @@ function PhotoCoach() {
                 </div>
               </div>
             )}
-          </div>
+          </button>
+
+          {preview && (
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-text-2"
+            >
+              <Camera size={16} />
+              다른 사진 업로드
+            </button>
+          )}
+
           <input
             ref={inputRef}
             type="file"
