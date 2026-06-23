@@ -64,14 +64,14 @@ function PhotoCoach() {
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
-            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border border-pink-mid bg-pink-light">
+            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl bg-surface-2 shadow-sm ring-1 ring-border">
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
               {analyze.data && (
-                <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
-                  <div className="flex items-center justify-between">
+                <div className="z-10 w-full bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 pt-8">
+                  <div className="flex items-end justify-between">
                     <div className="text-left">
-                      <div className="text-[11px] text-white/70">첫인상 점수</div>
-                      <div className="text-2xl font-bold text-white">{analyze.data.score}점</div>
+                      <div className="text-[11px] uppercase tracking-wider text-white/60">첫인상 점수</div>
+                      <div className="text-3xl font-bold leading-tight text-white">{analyze.data.score}<span className="ml-0.5 text-base font-medium text-white/70">점</span></div>
                     </div>
                     <span className={`tag-base ${analyze.data.score >= 80 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                       {analyze.data.score >= 80 ? "좋은 사진" : "개선 여지"}
@@ -84,18 +84,31 @@ function PhotoCoach() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-pink-mid bg-pink-light transition-colors hover:bg-pink-mid/40"
+              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm"
             >
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-sm">
-                <ImagePlus size={36} className="text-pink" />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(0deg, transparent 0 11px, var(--color-border) 11px 12px), repeating-linear-gradient(90deg, transparent 0 11px, var(--color-border) 11px 12px)",
+                  WebkitMask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+                  WebkitMaskComposite: "xor",
+                  maskComposite: "exclude",
+                  padding: 1,
+                  opacity: 0,
+                }}
+              />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-light text-pink ring-1 ring-pink/15 transition-transform group-hover:scale-105">
+                <ImagePlus size={28} strokeWidth={1.75} />
               </div>
               <div className="text-center">
-                <div className="text-base font-semibold text-foreground">사진 업로드</div>
-                <div className="mt-1 text-xs text-text-3">탭하여 갤러리에서 선택해 주세요</div>
+                <div className="text-[15px] font-semibold text-foreground">사진을 업로드해 주세요</div>
+                <div className="mt-1 text-xs text-text-3">JPG · PNG · 5MB 이하 권장</div>
               </div>
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-pink px-4 py-2 text-xs font-semibold text-pink-foreground shadow-sm">
-                <Camera size={14} />
-                사진 선택하기
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background">
+                <Camera size={14} strokeWidth={2} />
+                사진 선택
               </span>
             </button>
           )}
@@ -104,12 +117,14 @@ function PhotoCoach() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-text-2"
+              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
             >
               <Camera size={16} />
-              다른 사진 업로드
+              다른 사진으로 변경
             </button>
           )}
+
+
 
 
           <input
