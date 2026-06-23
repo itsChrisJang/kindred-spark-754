@@ -64,7 +64,7 @@ function PhotoCoach() {
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
-            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border border-purple/15 bg-purple-light/40">
+            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border border-pink/15 bg-pink-light">
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
               {analyze.data && (
                 <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
