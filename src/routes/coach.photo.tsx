@@ -64,7 +64,7 @@ function PhotoCoach() {
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
-            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border border-pink/15 bg-pink-light">
+            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border border-pink-mid bg-pink-light">
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
               {analyze.data && (
                 <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
@@ -84,16 +84,16 @@ function PhotoCoach() {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-purple/40 bg-purple-light/40 transition-colors hover:bg-purple-light/70"
+              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-pink-mid bg-pink-light transition-colors hover:bg-pink-mid/40"
             >
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-sm">
-                <ImagePlus size={36} className="text-purple" />
+                <ImagePlus size={36} className="text-pink" />
               </div>
               <div className="text-center">
                 <div className="text-base font-semibold text-foreground">사진 업로드</div>
                 <div className="mt-1 text-xs text-text-3">탭하여 갤러리에서 선택해 주세요</div>
               </div>
-              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-purple px-4 py-2 text-xs font-semibold text-white shadow-sm">
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-pink px-4 py-2 text-xs font-semibold text-pink-foreground shadow-sm">
                 <Camera size={14} />
                 사진 선택하기
               </span>
