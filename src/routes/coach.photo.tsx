@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Camera, Smile, Sun, Wand2, Bot, RotateCcw } from "lucide-react";
+import { Camera, Smile, Sun, Wand2, Bot, RotateCcw, ImagePlus } from "lucide-react";
 import { useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type PhotoAnalysis } from "@/lib/api";
@@ -63,36 +63,42 @@ function PhotoCoach() {
       />
       <div className="scroll-area">
         <div className="p-4">
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl border-2 border-dashed border-border bg-gradient-to-br from-pink-mid to-purple-light"
-          >
-            {preview ? (
+          {preview ? (
+            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl bg-secondary">
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur">
-                  <Camera size={28} />
-                </div>
-                <div className="text-sm font-semibold">사진을 업로드해 주세요</div>
-                <div className="text-xs text-white/80">탭하여 갤러리에서 선택</div>
-              </div>
-            )}
-            {analyze.data && (
-              <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
-                <div className="flex items-center justify-between">
-                  <div className="text-left">
-                    <div className="text-[11px] text-white/70">첫인상 점수</div>
-                    <div className="text-2xl font-bold text-white">{analyze.data.score}점</div>
+              {analyze.data && (
+                <div className="z-10 w-full bg-black/55 p-3 backdrop-blur">
+                  <div className="flex items-center justify-between">
+                    <div className="text-left">
+                      <div className="text-[11px] text-white/70">첫인상 점수</div>
+                      <div className="text-2xl font-bold text-white">{analyze.data.score}점</div>
+                    </div>
+                    <span className={`tag-base ${analyze.data.score >= 80 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                      {analyze.data.score >= 80 ? "좋은 사진" : "개선 여지"}
+                    </span>
                   </div>
-                  <span className={`tag-base ${analyze.data.score >= 80 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                    {analyze.data.score >= 80 ? "좋은 사진" : "개선 여지"}
-                  </span>
                 </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-purple/40 bg-purple-light/40 transition-colors hover:bg-purple-light/70"
+            >
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-sm">
+                <ImagePlus size={36} className="text-purple" />
               </div>
-            )}
-          </button>
+              <div className="text-center">
+                <div className="text-base font-semibold text-foreground">사진 업로드</div>
+                <div className="mt-1 text-xs text-text-3">탭하여 갤러리에서 선택해 주세요</div>
+              </div>
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-purple px-4 py-2 text-xs font-semibold text-white shadow-sm">
+                <Camera size={14} />
+                사진 선택하기
+              </span>
+            </button>
+          )}
 
           {preview && (
             <button
@@ -104,6 +110,7 @@ function PhotoCoach() {
               다른 사진 업로드
             </button>
           )}
+
 
           <input
             ref={inputRef}
