@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Plus } from "lucide-react";
+import { Bell } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type Meeting } from "@/lib/api";
 
@@ -75,14 +75,8 @@ function Home() {
           <div className="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-white/10" />
         </Link>
 
-        <div className="flex items-center justify-between px-4 pt-5 pb-3">
+        <div className="px-4 pt-5 pb-3">
           <h2 className="text-base font-semibold">모집 중인 모임</h2>
-          <Link
-            to="/create"
-            className="flex items-center gap-1 rounded-full bg-pink-light px-3 py-1.5 text-xs font-semibold text-pink"
-          >
-            <Plus size={14} /> 모임 만들기
-          </Link>
         </div>
 
         <div className="space-y-3 px-4">
