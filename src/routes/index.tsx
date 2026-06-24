@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Plus } from "lucide-react";
+import { Bell } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type Meeting } from "@/lib/api";
 
