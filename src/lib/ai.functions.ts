@@ -90,6 +90,7 @@ tips는 2-3개. 친근하고 구체적인 한국어. 좋은 점 1개 + 개선점
       photoType: "portrait",
       suitability: "sub",
       suitabilityReason: "프로필 서브 컷으로 적합해요.",
+      oneLiner: "사진은 멀쩡한데 본인이 더 잘생기셨을 듯요 ㅋㅋ",
       tips: [{ type: "good", text: "사진 분석을 완료했습니다." }],
     });
   });
