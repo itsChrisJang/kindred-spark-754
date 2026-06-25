@@ -105,9 +105,10 @@ function PhotoCoach() {
                 <ImagePlus size={28} strokeWidth={1.75} />
               </div>
               <div className="text-center">
-                <div className="text-[15px] font-semibold text-foreground">사진을 업로드해 주세요</div>
+                <div className="text-[15px] font-semibold text-foreground">탭해서 사진 업로드</div>
                 <div className="mt-1 text-xs text-text-3">JPG · PNG · 5MB 이하 권장</div>
               </div>
+
               <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/10 px-4 py-2 text-xs font-semibold text-foreground backdrop-blur ring-1 ring-foreground/10">
                 <Camera size={14} strokeWidth={2} />
                 사진 선택
