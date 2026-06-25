@@ -231,8 +231,8 @@ function Places() {
             </div>
           )}
         </div>
-      </div>
       <div className="scroll-area">
+
 
         {/* 카테고리 빠른 선택 */}
 
