@@ -55,7 +55,7 @@ function ChatPractice() {
       return api.chatPractice(mode, text, history);
     },
     onSuccess: (reply) => {
-      setMessages((m) => [...m, { role: "ai", text: reply.feedback, reply }]);
+      setMessages((m) => [...m, { role: "ai", text: reply.partnerReply, reply }]);
     },
     onError: () => {
       setMessages((m) => [
@@ -64,6 +64,7 @@ function ChatPractice() {
       ]);
     },
   });
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
