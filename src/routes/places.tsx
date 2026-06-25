@@ -144,9 +144,9 @@ function Places() {
   return (
     <PhoneShell>
       <NavHeader back title="데이트 장소" />
-      <div className="scroll-area">
-        {/* Sticky filter bar */}
-        <div className="sticky top-0 z-20 border-b border-border bg-bg/95 backdrop-blur">
+      {/* Pinned filter bar (sibling of scroll-area) */}
+      <div className="flex-shrink-0 border-b border-border bg-surface">
+
           <div className="flex items-center gap-2 px-4 py-2.5">
             {/* 지역 선택 */}
             <div className="relative">
@@ -231,8 +231,11 @@ function Places() {
             </div>
           )}
         </div>
+      <div className="scroll-area">
+
 
         {/* 카테고리 빠른 선택 */}
+
         <div className="flex gap-2 overflow-x-auto px-4 pt-3">
           {CATEGORIES.map(({ value, icon: Icon }) => {
             const active = value === cat;
