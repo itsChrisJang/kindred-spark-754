@@ -143,9 +143,10 @@ function Places() {
 
   return (
     <PhoneShell>
-      <NavHeader back title="데이트 장소" />
-      {/* Pinned filter bar (sibling of scroll-area) */}
-      <div className="flex-shrink-0 border-b border-border bg-surface">
+      <div className="sticky top-0 z-20 bg-surface">
+        <NavHeader back title="데이트 장소" />
+      {/* Pinned filter bar */}
+      <div className="border-b border-border bg-surface">
 
           <div className="flex items-center gap-2 px-4 py-2.5">
             {/* 지역 선택 */}
