@@ -262,3 +262,19 @@ function ScoreBar({ icon, label, value, klass, valueText }: { icon: React.ReactN
     </div>
   );
 }
+
+function gazeLabel(g: PhotoAnalysis["gazeDirection"]) {
+  return g === "camera" ? "정면" : g === "side" ? "측면" : "회피";
+}
+function framingLabel(f: PhotoAnalysis["framing"]) {
+  return f === "closeup" ? "클로즈업" : f === "bust" ? "상반신" : f === "fullbody" ? "전신" : "와이드";
+}
+function photoTypeLabel(t: PhotoAnalysis["photoType"]) {
+  return t === "selfie" ? "셀카" : t === "portrait" ? "인물 사진" : t === "fullbody" ? "전신 컷" : t === "group" ? "단체 사진" : "풍경 위주";
+}
+function suitabilityLabel(s: PhotoAnalysis["suitability"]) {
+  return s === "main" ? "메인 추천" : s === "sub" ? "서브로 적합" : "교체 권장";
+}
+function suitabilityClass(s: PhotoAnalysis["suitability"]) {
+  return s === "main" ? "bg-green-100 text-green-700" : s === "sub" ? "bg-amber-100 text-amber-700" : "bg-red-50 text-red-600";
+}
