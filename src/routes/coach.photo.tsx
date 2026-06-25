@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Camera, Smile, Sun, Wand2, Bot, RotateCcw, ImagePlus } from "lucide-react";
+import { Camera, Smile, Sun, Wand2, Bot, RotateCcw, ImagePlus, Shirt, Eye, Users } from "lucide-react";
 import { useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type PhotoAnalysis } from "@/lib/api";
