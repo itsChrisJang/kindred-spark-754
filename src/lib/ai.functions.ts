@@ -10,6 +10,14 @@ export interface PhotoAnalysisResult {
   retouchLevel: "natural" | "moderate" | "heavy";
   retouchScore: number;
   isAiGenerated: boolean;
+  styleScore: number;
+  styleComment: string;
+  compositionScore: number;
+  gazeDirection: "camera" | "side" | "away";
+  framing: "closeup" | "bust" | "fullbody" | "wide";
+  photoType: "selfie" | "portrait" | "fullbody" | "group" | "scenery";
+  suitability: "main" | "sub" | "replace";
+  suitabilityReason: string;
   tips: { type: "good" | "improve"; text: string }[];
 }
 
@@ -45,11 +53,19 @@ export const analyzePhotoFn = createServerFn({ method: "POST" })
   "retouchLevel": "natural" | "moderate" | "heavy",
   "retouchScore": <보정이 자연스러운 정도(높을수록 자연스러움)>,
   "isAiGenerated": <AI로 생성된 이미지로 의심되는가? true/false>,
+  "styleScore": <옷차림 정돈도/스타일 점수 0-100>,
+  "styleComment": "<옷차림에 대한 구체적인 한국어 코멘트 1문장>",
+  "compositionScore": <시선·구도 점수 0-100>,
+  "gazeDirection": "camera" | "side" | "away",
+  "framing": "closeup" | "bust" | "fullbody" | "wide",
+  "photoType": "selfie" | "portrait" | "fullbody" | "group" | "scenery",
+  "suitability": "main" | "sub" | "replace",
+  "suitabilityReason": "<왜 그 등급인지 한국어 1문장>",
   "tips": [
     {"type": "good" | "improve", "text": "<한국어 코멘트>"}
   ]
 }
-tips는 2-3개. 친근하고 구체적인 한국어로 작성. 좋은 점 1개 + 개선점 1-2개를 권장.`,
+tips는 2-3개. 친근하고 구체적인 한국어. 좋은 점 1개 + 개선점 1-2개 권장.`,
             },
             { type: "image_url", image_url: { url: data.imageDataUrl } },
           ],
@@ -64,6 +80,14 @@ tips는 2-3개. 친근하고 구체적인 한국어로 작성. 좋은 점 1개 +
       retouchLevel: "natural",
       retouchScore: 80,
       isAiGenerated: false,
+      styleScore: 70,
+      styleComment: "단정한 옷차림이에요.",
+      compositionScore: 70,
+      gazeDirection: "camera",
+      framing: "bust",
+      photoType: "portrait",
+      suitability: "sub",
+      suitabilityReason: "프로필 서브 컷으로 적합해요.",
       tips: [{ type: "good", text: "사진 분석을 완료했습니다." }],
     });
   });

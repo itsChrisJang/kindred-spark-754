@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Camera, Smile, Sun, Wand2, Bot, RotateCcw, ImagePlus } from "lucide-react";
+import { Camera, Smile, Sun, Wand2, Bot, RotateCcw, ImagePlus, Shirt, Eye, Users } from "lucide-react";
 import { useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type PhotoAnalysis } from "@/lib/api";
@@ -167,6 +167,8 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
       <div className="space-y-2.5 px-4">
         <ScoreBar icon={<Smile size={18} />} label="표정 자연스러움" value={data.expression} klass={colorOf(data.expression)} />
         <ScoreBar icon={<Sun size={18} />} label="밝기 & 배경" value={data.brightness} klass={colorOf(data.brightness)} />
+        <ScoreBar icon={<Shirt size={18} />} label="스타일 · 옷차림" value={data.styleScore} klass={colorOf(data.styleScore)} />
+        <ScoreBar icon={<Eye size={18} />} label="시선 · 구도" value={data.compositionScore} klass={colorOf(data.compositionScore)} />
         <ScoreBar
           icon={<Wand2 size={18} />}
           label="보정 정도"
@@ -174,6 +176,42 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
           klass={colorOf(data.retouchScore)}
           valueText={data.retouchLevel === "natural" ? "자연스러움" : data.retouchLevel === "moderate" ? "보통" : "과함"}
         />
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Shirt size={18} className="text-text-2" />
+            <span className="text-sm font-medium">스타일 코멘트</span>
+          </div>
+          <p className="text-sm leading-relaxed text-text-2">{data.styleComment}</p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye size={18} className="text-text-2" />
+              <span className="text-sm font-medium">시선 · 구도</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="tag-base bg-secondary text-text-2">시선 {gazeLabel(data.gazeDirection)}</span>
+            <span className="tag-base bg-secondary text-text-2">구도 {framingLabel(data.framing)}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users size={18} className="text-text-2" />
+              <span className="text-sm font-medium">사진 종류 · 적합도</span>
+            </div>
+            <span className={`tag-base ${suitabilityClass(data.suitability)}`}>{suitabilityLabel(data.suitability)}</span>
+          </div>
+          <div className="mb-2">
+            <span className="tag-base bg-secondary text-text-2">{photoTypeLabel(data.photoType)}</span>
+          </div>
+          <p className="text-sm leading-relaxed text-text-2">{data.suitabilityReason}</p>
+        </div>
+
         <div className="rounded-2xl border border-border bg-surface p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -223,4 +261,20 @@ function ScoreBar({ icon, label, value, klass, valueText }: { icon: React.ReactN
       </div>
     </div>
   );
+}
+
+function gazeLabel(g: PhotoAnalysis["gazeDirection"]) {
+  return g === "camera" ? "정면" : g === "side" ? "측면" : "회피";
+}
+function framingLabel(f: PhotoAnalysis["framing"]) {
+  return f === "closeup" ? "클로즈업" : f === "bust" ? "상반신" : f === "fullbody" ? "전신" : "와이드";
+}
+function photoTypeLabel(t: PhotoAnalysis["photoType"]) {
+  return t === "selfie" ? "셀카" : t === "portrait" ? "인물 사진" : t === "fullbody" ? "전신 컷" : t === "group" ? "단체 사진" : "풍경 위주";
+}
+function suitabilityLabel(s: PhotoAnalysis["suitability"]) {
+  return s === "main" ? "메인 추천" : s === "sub" ? "서브로 적합" : "교체 권장";
+}
+function suitabilityClass(s: PhotoAnalysis["suitability"]) {
+  return s === "main" ? "bg-green-100 text-green-700" : s === "sub" ? "bg-amber-100 text-amber-700" : "bg-red-50 text-red-600";
 }
