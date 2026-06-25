@@ -27,13 +27,48 @@ const SORT = ["추천순", "평점순"] as const;
 type Sort = (typeof SORT)[number];
 
 function naverMapUrl(name: string, address: string) {
+  // 현행 네이버지도 URL — 모바일에서 네이버지도 앱으로 자동 전환
   const q = encodeURIComponent(`${name} ${address}`);
-  return `https://map.naver.com/v5/search/${q}`;
+  return `https://map.naver.com/p/search/${q}`;
 }
 
+// 카테고리별 안정 Unsplash 이미지 (source.unsplash.com은 2024년 서비스 종료)
+const CATEGORY_IMAGES: Record<string, string[]> = {
+  카페: [
+    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=70",
+    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&q=70",
+    "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=600&q=70",
+    "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600&q=70",
+    "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=600&q=70",
+  ],
+  레스토랑: [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=70",
+    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=70",
+    "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=70",
+    "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600&q=70",
+    "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=600&q=70",
+  ],
+  와인바: [
+    "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=70",
+    "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=600&q=70",
+    "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=70",
+    "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&q=70",
+    "https://images.unsplash.com/photo-1525268323446-0505b6fe7778?w=600&q=70",
+  ],
+  액티비티: [
+    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=70",
+    "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=600&q=70",
+    "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=70",
+    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=70",
+    "https://images.unsplash.com/photo-1545048702-79362596cdc9?w=600&q=70",
+  ],
+};
+
 function placeImage(p: DatePlace) {
-  const q = encodeURIComponent(p.imageQuery || `${p.category} ${p.name}`);
-  return `https://source.unsplash.com/featured/600x400/?${q}`;
+  const pool = CATEGORY_IMAGES[p.category] ?? CATEGORY_IMAGES.카페;
+  // id 해시 기반으로 같은 장소엔 항상 같은 사진
+  const hash = [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0);
+  return pool[hash % pool.length];
 }
 
 function Places() {
