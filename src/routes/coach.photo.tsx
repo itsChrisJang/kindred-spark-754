@@ -34,6 +34,13 @@ function PhotoCoach() {
     },
   });
 
+  function openPicker() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.value = ""; // 같은 파일 재선택 허용
+    el.click();
+  }
+
   async function onFile(f?: File) {
     if (!f) return;
     setPreview(URL.createObjectURL(f));
@@ -45,6 +52,7 @@ function PhotoCoach() {
     analyze.reset();
     if (inputRef.current) inputRef.current.value = "";
   }
+
 
   const scoreColor = (s: number) => (s >= 85 ? "bg-green-500 text-green-500" : s >= 70 ? "bg-amber-500 text-amber-500" : "bg-pink text-pink");
 
