@@ -137,12 +137,45 @@ function ChatPractice() {
                   </div>
                   {msg.reply && (
                     <div className="space-y-1.5">
-                      {msg.reply.good.map((g, gi) => (
-                        <Tip key={"g" + gi} kind="good">{g}</Tip>
-                      ))}
-                      {msg.reply.improve.map((g, gi) => (
-                        <Tip key={"i" + gi} kind="improve">{g}</Tip>
-                      ))}
+                      {/* 평가 */}
+                      {msg.reply.feedback && (
+                        <div className="rounded-xl border border-border bg-surface p-3 text-xs">
+                          <div className="mb-1 font-semibold text-foreground">평가</div>
+                          <div className="text-text-2 leading-relaxed">{msg.reply.feedback}</div>
+                        </div>
+                      )}
+                      {/* 좋은 점 + 개선 포인트 통합 박스 */}
+                      {(msg.reply.good.length > 0 || msg.reply.improve.length > 0) && (
+                        <div className="rounded-xl border border-border bg-surface p-3 text-xs">
+                          {msg.reply.good.length > 0 && (
+                            <div className={msg.reply.improve.length > 0 ? "mb-2.5" : ""}>
+                              <div className="mb-1 font-semibold text-green-600">✓ 좋은 점</div>
+                              <ul className="space-y-1 pl-1">
+                                {msg.reply.good.map((g, gi) => (
+                                  <li key={"g" + gi} className="flex gap-1.5 text-text-2 leading-relaxed">
+                                    <span className="text-green-600">•</span>
+                                    <span>{g}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {msg.reply.improve.length > 0 && (
+                            <div>
+                              <div className="mb-1 font-semibold text-pink">💡 개선 포인트</div>
+                              <ul className="space-y-1 pl-1">
+                                {msg.reply.improve.map((g, gi) => (
+                                  <li key={"i" + gi} className="flex gap-1.5 text-text-2 leading-relaxed">
+                                    <span className="text-pink">•</span>
+                                    <span>{g}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* 이렇게 이어가보세요 */}
                       {msg.reply.suggestions.length > 0 && (
                         <div className="rounded-2xl border border-border bg-surface p-3.5">
                           <div className="mb-2 text-xs font-semibold text-purple">이렇게 이어가보세요</div>
@@ -163,6 +196,7 @@ function ChatPractice() {
                       )}
                     </div>
                   )}
+
                 </div>
               </div>
             ),
