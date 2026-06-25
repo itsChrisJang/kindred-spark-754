@@ -70,6 +70,7 @@ tips는 2-3개. 친근하고 구체적인 한국어로 작성. 좋은 점 1개 +
 
 // ── 2. 대화 연습 ──────────────────────────────────────
 export interface ChatPracticeResult {
+  partnerReply: string;
   feedback: string;
   good: string[];
   improve: string[];
@@ -85,42 +86,63 @@ export const chatPracticeFn = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }): Promise<ChatPracticeResult> => {
     const modeLabel = data.mode === "intro" ? "자기소개" : data.mode === "hobby" ? "취미·관심사 대화" : "스몰토크";
+    const personaHint =
+      data.mode === "intro"
+        ? "처음 만난 소개팅 상대로서 살짝 긴장한 듯하지만 호감 있고 자연스럽게 자기소개에 반응"
+        : data.mode === "hobby"
+          ? "공통점을 찾으려는 호기심 많은 소개팅 상대로서 취미 이야기에 관심을 보이며 되묻기"
+          : "편안한 분위기에서 가볍게 농담도 섞는 소개팅 상대로서 스몰토크에 자연스럽게 받아치기";
+
     const history = (data.history ?? [])
-      .slice(-6)
-      .map((m) => `${m.role === "user" ? "사용자" : "AI 코치"}: ${m.text}`)
+      .slice(-8)
+      .map((m) => `${m.role === "user" ? "사용자" : "상대"}: ${m.text}`)
       .join("\n");
 
     const content = await callAiGateway({
       responseFormat: "json_object",
-      temperature: 0.7,
+      temperature: 0.85,
       messages: [
         {
           role: "system",
-          content: `당신은 소개팅 대화 코치입니다. 사용자가 "${modeLabel}"을(를) 연습 중입니다.
-사용자의 마지막 발화를 평가해 JSON으로만 응답합니다. 한국어로, 친근하고 격려하는 톤. JSON 외 텍스트 금지.`,
+          content: `당신은 소개팅 대화 코치이자 동시에 사용자의 가상 소개팅 상대 역할을 합니다.
+사용자는 지금 "${modeLabel}"을(를) 연습하고 있습니다.
+두 가지 역할을 한 번에 수행하세요:
+1) 가상 소개팅 상대로서 사용자의 마지막 발화에 자연스럽게 대답합니다 (${personaHint}).
+2) 코치로서 사용자의 발화를 구체적으로 평가합니다.
+
+규칙:
+- 한국어, 친근하고 자연스러운 구어체.
+- partnerReply는 1-2문장, 실제 사람이 대답하듯 자연스럽게. 절대 평가/조언/메타발언 금지.
+- feedback은 2-3문장, 무엇이 왜 좋았고 왜 아쉬웠는지 구체적으로.
+- good/improve는 추상적 표현("좋아요","더 자연스럽게") 금지. 사용자의 실제 문장을 인용/지적하면서 구체적으로.
+- suggestions는 사용자가 다음 턴에 그대로 보낼 수 있는 완성된 멘트 2-3개.
+- JSON 외 텍스트 절대 금지.`,
         },
         {
           role: "user",
-          content: `${history ? `[이전 대화]\n${history}\n\n` : ""}[사용자 발화]\n"${data.message}"
+          content: `${history ? `[지금까지의 대화]\n${history}\n\n` : ""}[사용자의 이번 발화]\n"${data.message}"
 
-아래 스키마로만 답변:
+아래 JSON 스키마로만 응답:
 {
-  "feedback": "<2-3문장의 종합 피드백>",
-  "good": ["<잘한 점 1-2개>"],
-  "improve": ["<개선점 1-2개>"],
-  "suggestions": ["<자연스럽게 이어갈 다음 멘트 후보 2-3개>"]
+  "partnerReply": "<소개팅 상대가 사용자에게 건네는 자연스러운 대답 1-2문장>",
+  "feedback": "<코치의 종합 평가 2-3문장>",
+  "good": ["<구체적으로 잘한 점 1-3개>"],
+  "improve": ["<구체적으로 개선할 점 1-3개>"],
+  "suggestions": ["<다음 턴에 보낼 만한 완성된 멘트 2-3개>"]
 }`,
         },
       ],
     });
 
     return parseJsonLoose<ChatPracticeResult>(content, {
-      feedback: "좋은 시도예요! 계속 연습해보세요.",
+      partnerReply: "음, 그렇군요. 좀 더 듣고 싶어요!",
+      feedback: "좋은 시도예요. 조금 더 구체적인 이야기를 더해보면 대화가 풍성해질 거예요.",
       good: [],
       improve: [],
       suggestions: [],
     });
   });
+
 
 // ── 3. 데이트 장소 추천 ──────────────────────────────
 export interface AiPlace {
