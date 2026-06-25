@@ -66,11 +66,13 @@ export interface PhotoAnalysis {
 }
 
 export interface ChatPracticeReply {
+  partnerReply: string;
   feedback: string;
   good: string[];
   improve: string[];
   suggestions: string[];
 }
+
 
 export interface DatePlace {
   id: string;
