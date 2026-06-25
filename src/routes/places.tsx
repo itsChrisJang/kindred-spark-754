@@ -1,6 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MapPin, Search, Star, ExternalLink, Utensils } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  MapPin,
+  Search,
+  Star,
+  ExternalLink,
+  Utensils,
+  SlidersHorizontal,
+  X,
+  Coffee,
+  Wine,
+  Sparkles,
+  Music,
+  ArrowUpDown,
+  Check,
+  RotateCcw,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
 import { type DatePlace } from "@/lib/api";
@@ -19,20 +34,27 @@ export const Route = createFileRoute("/places")({
   component: Places,
 });
 
-const CATEGORIES = ["전체", "카페", "레스토랑", "와인바", "액티비티"];
+const CATEGORIES = [
+  { value: "전체", icon: Sparkles },
+  { value: "카페", icon: Coffee },
+  { value: "레스토랑", icon: Utensils },
+  { value: "와인바", icon: Wine },
+  { value: "액티비티", icon: Music },
+] as const;
 const AREAS = ["성수동", "한남동", "강남", "홍대", "이태원", "연남동"];
 const PRICE = ["전체", "1만원 이하", "1만~3만원", "3만~5만원", "5만원 이상"];
 const MOOD = ["전체", "조용함", "감성적", "활기참", "프라이빗"];
-const SORT = ["추천순", "평점순"] as const;
-type Sort = (typeof SORT)[number];
+const SORT = [
+  { value: "추천순", label: "추천순" },
+  { value: "평점순", label: "평점 높은순" },
+] as const;
+type Sort = (typeof SORT)[number]["value"];
 
 function naverMapUrl(name: string, address: string) {
-  // 현행 네이버지도 URL — 모바일에서 네이버지도 앱으로 자동 전환
   const q = encodeURIComponent(`${name} ${address}`);
   return `https://map.naver.com/p/search/${q}`;
 }
 
-// 카테고리별 안정 Unsplash 이미지 (source.unsplash.com은 2024년 서비스 종료)
 const CATEGORY_IMAGES: Record<string, string[]> = {
   카페: [
     "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=70",
@@ -66,7 +88,6 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
 
 function placeImage(p: DatePlace) {
   const pool = CATEGORY_IMAGES[p.category] ?? CATEGORY_IMAGES.카페;
-  // id 해시 기반으로 같은 장소엔 항상 같은 사진
   const hash = [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0);
   return pool[hash % pool.length];
 }
@@ -77,6 +98,9 @@ function Places() {
   const [price, setPrice] = useState("전체");
   const [mood, setMood] = useState("전체");
   const [sort, setSort] = useState<Sort>("추천순");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [areaOpen, setAreaOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return SEED.filter((p) => p.area === area)
@@ -91,45 +115,182 @@ function Places() {
   });
   const main = sorted.filter((p) => !p.isAfter);
   const after = sorted.filter((p) => p.isAfter);
-  const isLoading = false;
+
+  const activeCount =
+    (cat !== "전체" ? 1 : 0) + (price !== "전체" ? 1 : 0) + (mood !== "전체" ? 1 : 0);
+
+  const activeChips: { key: string; label: string; reset: () => void }[] = [];
+  if (cat !== "전체") activeChips.push({ key: "cat", label: cat, reset: () => setCat("전체") });
+  if (price !== "전체")
+    activeChips.push({ key: "price", label: price, reset: () => setPrice("전체") });
+  if (mood !== "전체") activeChips.push({ key: "mood", label: mood, reset: () => setMood("전체") });
+
+  const resetAll = () => {
+    setCat("전체");
+    setPrice("전체");
+    setMood("전체");
+  };
+
+  // 시트가 열렸을 때 배경 스크롤 잠금
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [sheetOpen]);
 
   return (
     <PhoneShell>
       <NavHeader back title="데이트 장소" />
       <div className="scroll-area">
-        <div className="px-4 pt-3">
-          <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-3.5 py-2.5">
-            <Search size={16} className="text-text-3" />
-            <select
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              className="flex-1 bg-transparent text-sm outline-none"
+        {/* Sticky filter bar */}
+        <div className="sticky top-0 z-20 border-b border-border bg-bg/95 backdrop-blur">
+          <div className="flex items-center gap-2 px-4 py-2.5">
+            {/* 지역 선택 */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setAreaOpen((v) => !v);
+                  setSortOpen(false);
+                }}
+                className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold"
+              >
+                <MapPin size={14} className="text-pink" />
+                {area}
+              </button>
+              {areaOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setAreaOpen(false)}
+                  />
+                  <div className="absolute left-0 top-full z-40 mt-1.5 w-32 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+                    {AREAS.map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => {
+                          setArea(a);
+                          setAreaOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
+                          a === area ? "bg-pink-light text-pink font-semibold" : "hover:bg-secondary"
+                        }`}
+                      >
+                        {a}
+                        {a === area && <Check size={14} />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* 검색바 (placeholder) */}
+            <div className="flex flex-1 items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-sm text-text-3">
+              <Search size={14} />
+              <span className="truncate">{main.length + after.length}곳 추천중</span>
+            </div>
+
+            {/* 필터 버튼 */}
+            <button
+              onClick={() => setSheetOpen(true)}
+              className="relative flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold"
             >
-              {AREAS.map((a) => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-            <span className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink">
-              {main.length + after.length}곳
-            </span>
+              <SlidersHorizontal size={14} />
+              필터
+              {activeCount > 0 && (
+                <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink px-1 text-[10px] font-bold text-white">
+                  {activeCount}
+                </span>
+              )}
+            </button>
           </div>
+
+          {/* 활성 필터 칩 */}
+          {activeChips.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto px-4 pb-2.5">
+              {activeChips.map((c) => (
+                <button
+                  key={c.key}
+                  onClick={c.reset}
+                  className="flex flex-shrink-0 items-center gap-1 rounded-full bg-pink-light px-2.5 py-1 text-xs font-semibold text-pink"
+                >
+                  {c.label}
+                  <X size={11} />
+                </button>
+              ))}
+              <button
+                onClick={resetAll}
+                className="flex flex-shrink-0 items-center gap-0.5 px-1 text-xs text-text-3 underline-offset-2 hover:underline"
+              >
+                <RotateCcw size={11} />
+                초기화
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* 필터들 */}
-        <FilterRow label="카테고리" items={CATEGORIES} value={cat} onChange={setCat} />
-        <FilterRow label="가격대" items={PRICE} value={price} onChange={setPrice} />
-        <FilterRow label="분위기" items={MOOD} value={mood} onChange={setMood} />
-        <div className="flex items-center gap-2 px-4 pt-3">
-          <span className="text-[11px] text-text-3">정렬</span>
-          {SORT.map((s) => (
+        {/* 카테고리 빠른 선택 */}
+        <div className="flex gap-2 overflow-x-auto px-4 pt-3">
+          {CATEGORIES.map(({ value, icon: Icon }) => {
+            const active = value === cat;
+            return (
+              <button
+                key={value}
+                onClick={() => setCat(value)}
+                className={`flex flex-shrink-0 flex-col items-center gap-1 rounded-2xl border px-3.5 py-2 transition-all ${
+                  active
+                    ? "border-pink bg-pink text-white shadow-sm"
+                    : "border-border bg-surface text-text-2"
+                }`}
+              >
+                <Icon size={16} />
+                <span className="text-[11px] font-semibold">{value}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 정렬 */}
+        <div className="flex items-center justify-between px-4 pt-4">
+          <h2 className="text-base font-semibold">
+            {area} 추천 <span className="text-pink">{main.length}</span>곳
+          </h2>
+          <div className="relative">
             <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`text-[12px] ${sort === s ? "text-pink font-semibold" : "text-text-3"}`}
+              onClick={() => setSortOpen((v) => !v)}
+              className="flex items-center gap-1 text-xs font-semibold text-text-2"
             >
-              {s}
+              <ArrowUpDown size={12} />
+              {SORT.find((s) => s.value === sort)?.label}
             </button>
-          ))}
+            {sortOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setSortOpen(false)} />
+                <div className="absolute right-0 top-full z-40 mt-1.5 w-32 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+                  {SORT.map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => {
+                        setSort(s.value);
+                        setSortOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs ${
+                        s.value === sort
+                          ? "bg-pink-light text-pink font-semibold"
+                          : "hover:bg-secondary"
+                      }`}
+                    >
+                      {s.label}
+                      {s.value === sort && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="px-4 pt-3">
@@ -143,14 +304,22 @@ function Places() {
           />
         </div>
 
-        <h2 className="px-4 pt-5 pb-3 text-base font-semibold">
-          {area} 소개팅하기 좋은 장소
-        </h2>
-        <div className="space-y-3 px-4">
-          {!isLoading && main.length === 0 && (
-            <div className="py-8 text-center text-sm text-text-3">추천된 장소가 없어요. 다시 시도해주세요.</div>
+        <div className="space-y-3 px-4 pt-4">
+          {main.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border py-10 text-center">
+              <div className="text-sm font-semibold">조건에 맞는 장소가 없어요</div>
+              <div className="mt-1 text-xs text-text-3">필터를 조정해보세요</div>
+              <button
+                onClick={resetAll}
+                className="mt-3 rounded-full bg-pink-light px-4 py-1.5 text-xs font-semibold text-pink"
+              >
+                필터 초기화
+              </button>
+            </div>
           )}
-          {main.map((p) => <PlaceCard key={p.id} p={p} />)}
+          {main.map((p) => (
+            <PlaceCard key={p.id} p={p} />
+          ))}
         </div>
 
         {after.length > 0 && (
@@ -160,27 +329,163 @@ function Places() {
               <div className="mt-0.5 text-xs text-purple/80">근처에서 이어가기 좋은 장소예요</div>
             </div>
             <div className="space-y-3 px-4 pt-3 pb-6">
-              {after.map((p) => <PlaceCard key={p.id} p={p} />)}
+              {after.map((p) => (
+                <PlaceCard key={p.id} p={p} />
+              ))}
             </div>
           </>
         )}
       </div>
+
+      {/* Filter Bottom Sheet */}
+      {sheetOpen && (
+        <FilterSheet
+          price={price}
+          mood={mood}
+          onChange={(p, m) => {
+            setPrice(p);
+            setMood(m);
+          }}
+          onClose={() => setSheetOpen(false)}
+          onReset={() => {
+            setPrice("전체");
+            setMood("전체");
+          }}
+        />
+      )}
     </PhoneShell>
   );
 }
 
-function FilterRow({ label, items, value, onChange }: { label: string; items: string[]; value: string; onChange: (v: string) => void }) {
+function FilterSheet({
+  price,
+  mood,
+  onChange,
+  onClose,
+  onReset,
+}: {
+  price: string;
+  mood: string;
+  onChange: (price: string, mood: string) => void;
+  onClose: () => void;
+  onReset: () => void;
+}) {
+  const [localPrice, setLocalPrice] = useState(price);
+  const [localMood, setLocalMood] = useState(mood);
+
+  const apply = () => {
+    onChange(localPrice, localMood);
+    onClose();
+  };
+  const reset = () => {
+    setLocalPrice("전체");
+    setLocalMood("전체");
+    onReset();
+  };
+
   return (
-    <div className="px-4 pt-3">
-      <div className="mb-1 text-[11px] text-text-3">{label}</div>
-      <div className="flex gap-2 overflow-x-auto">
-        {items.map((i) => (
-          <button key={i} onClick={() => onChange(i)} className={`pill ${i === value ? "pill-active" : ""}`}>
-            {i}
+    <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-[440px] animate-in slide-in-from-bottom rounded-t-3xl bg-bg pb-6">
+        <div className="flex items-center justify-between px-5 pb-2 pt-3">
+          <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+        </div>
+        <div className="flex items-center justify-between px-5 pb-4">
+          <button onClick={reset} className="flex items-center gap-1 text-sm text-text-3">
+            <RotateCcw size={13} />
+            초기화
           </button>
-        ))}
+          <div className="text-base font-semibold">상세 필터</div>
+          <button onClick={onClose} className="text-text-3">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto px-5">
+          <SheetSection title="가격대" hint="1인 기준 예상 비용">
+            <div className="grid grid-cols-2 gap-2">
+              {PRICE.map((p) => (
+                <ChoiceCard
+                  key={p}
+                  active={p === localPrice}
+                  onClick={() => setLocalPrice(p)}
+                  label={p}
+                />
+              ))}
+            </div>
+          </SheetSection>
+
+          <SheetSection title="분위기" hint="원하는 무드를 골라주세요">
+            <div className="grid grid-cols-2 gap-2">
+              {MOOD.map((m) => (
+                <ChoiceCard
+                  key={m}
+                  active={m === localMood}
+                  onClick={() => setLocalMood(m)}
+                  label={m}
+                />
+              ))}
+            </div>
+          </SheetSection>
+        </div>
+
+        <div className="px-5 pt-4">
+          <button
+            onClick={apply}
+            className="h-12 w-full rounded-2xl bg-pink text-sm font-semibold text-white shadow-sm"
+          >
+            적용하기
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function SheetSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="py-3">
+      <div className="mb-2.5">
+        <div className="text-sm font-semibold">{title}</div>
+        {hint && <div className="mt-0.5 text-[11px] text-text-3">{hint}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ChoiceCard({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-between rounded-2xl border px-3.5 py-3 text-left text-sm transition-all ${
+        active
+          ? "border-pink bg-pink-light font-semibold text-pink"
+          : "border-border bg-surface text-text-2"
+      }`}
+    >
+      <span>{label}</span>
+      {active && <Check size={14} />}
+    </button>
   );
 }
 
