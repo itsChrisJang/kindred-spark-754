@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
+
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
@@ -60,6 +61,7 @@ export function MapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [failed, setFailed] = useState(false);
 
   // 초기화
   useEffect(() => {
@@ -74,6 +76,7 @@ export function MapView({
       })
       .catch((err) => {
         console.warn("[MapView] Kakao SDK 로드 실패:", err);
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
@@ -81,6 +84,7 @@ export function MapView({
     // 컨테이너 1회 초기화 — center/zoom 변경은 아래 effect에서 반영
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // center / zoom 갱신
   useEffect(() => {
@@ -132,14 +136,28 @@ export function MapView({
     });
   }, [lat, lng, label, pins]);
 
-  // 키 미설정 시 fallback
-  if (!KAKAO_KEY) {
+  // 키 미설정 또는 SDK 로드 실패 시 OpenStreetMap 정적 이미지로 대체 (마커 포함)
+  if (!KAKAO_KEY || failed) {
+    const bbox = `${lng - 0.008},${lat - 0.005},${lng + 0.008},${lat + 0.005}`;
+    const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     return (
       <div
-        className="flex items-center justify-center rounded-2xl border border-border bg-secondary text-xs text-muted-foreground"
-        style={{ height }}
+        className="relative overflow-hidden rounded-2xl border border-border bg-secondary"
+        style={{ height, width: "100%" }}
       >
-        <MapPin size={14} className="mr-1" /> 지도를 불러올 수 없어요
+        <iframe
+          title={label ?? "지도"}
+          src={src}
+          className="h-full w-full"
+          style={{ border: 0 }}
+          loading="lazy"
+        />
+        {label && (
+          <div className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-surface/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow">
+            <MapPin size={11} className="text-pink" />
+            {label}
+          </div>
+        )}
       </div>
     );
   }
@@ -152,6 +170,7 @@ export function MapView({
     />
   );
 }
+
 
 // 한국 주요 지역 좌표
 export const AREA_COORDS: Record<string, { lat: number; lng: number }> = {
