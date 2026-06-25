@@ -110,7 +110,6 @@ function Places() {
 
         <h2 className="px-4 pt-5 pb-3 text-base font-semibold">
           {area} 소개팅하기 좋은 장소
-          {isFetching && !isLoading && <span className="ml-2 text-xs text-text-3">갱신 중…</span>}
         </h2>
         <div className="space-y-3 px-4">
           {isLoading && <div className="py-8 text-center text-sm text-text-3 animate-pulse">AI가 장소를 추천 중이에요…</div>}
