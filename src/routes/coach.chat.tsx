@@ -113,9 +113,10 @@ function ChatPractice() {
       {/* Scrollable messages, sized to fit between header and input */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4"
-        style={{ paddingTop: "120px", paddingBottom: "88px" }}
+        className="overflow-y-auto px-4"
+        style={{ height: "100dvh", paddingTop: "120px", paddingBottom: "88px" }}
       >
+
         <div className="space-y-3">
           {messages.map((msg, i) =>
             msg.role === "me" ? (
