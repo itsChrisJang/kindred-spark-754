@@ -233,6 +233,7 @@ function Places() {
         </div>
       </div>
       <div className="scroll-area">
+
         {/* 카테고리 빠른 선택 */}
 
         <div className="flex gap-2 overflow-x-auto px-4 pt-3">
