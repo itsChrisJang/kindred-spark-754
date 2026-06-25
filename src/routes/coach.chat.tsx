@@ -252,13 +252,3 @@ function TypingDots() {
   );
 }
 
-function Tip({ kind, children }: { kind: "good" | "improve"; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border bg-surface p-3 text-xs">
-      <span className={kind === "good" ? "font-semibold text-green-600" : "font-semibold text-pink"}>
-        {kind === "good" ? "✓ 좋은 점" : "💡 개선 포인트"}
-      </span>
-      <div className="mt-1 text-text-2">{children}</div>
-    </div>
-  );
-}
