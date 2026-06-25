@@ -61,6 +61,7 @@ export function MapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [failed, setFailed] = useState(false);
 
   // 초기화
   useEffect(() => {
@@ -75,6 +76,7 @@ export function MapView({
       })
       .catch((err) => {
         console.warn("[MapView] Kakao SDK 로드 실패:", err);
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
@@ -82,6 +84,7 @@ export function MapView({
     // 컨테이너 1회 초기화 — center/zoom 변경은 아래 effect에서 반영
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   // center / zoom 갱신
   useEffect(() => {
