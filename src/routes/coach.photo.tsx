@@ -72,7 +72,11 @@ function PhotoCoach() {
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
-            <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl bg-surface-2 shadow-sm ring-1 ring-border">
+            <div
+              className={`relative flex w-full items-end overflow-hidden rounded-3xl bg-surface-2 shadow-sm ring-1 ring-border ${
+                analyze.data ? "aspect-[16/10]" : "aspect-[4/5]"
+              }`}
+            >
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
 
               {analyze.isPending && <ScanOverlay />}
@@ -97,19 +101,6 @@ function PhotoCoach() {
               onClick={openPicker}
               className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm"
             >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-3xl"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(0deg, transparent 0 11px, var(--color-border) 11px 12px), repeating-linear-gradient(90deg, transparent 0 11px, var(--color-border) 11px 12px)",
-                  WebkitMask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
-                  WebkitMaskComposite: "xor",
-                  maskComposite: "exclude",
-                  padding: 1,
-                  opacity: 0,
-                }}
-              />
               <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-light text-pink ring-1 ring-pink/15 transition-transform group-hover:scale-105">
                 <ImagePlus size={28} strokeWidth={1.75} />
               </div>
@@ -124,19 +115,12 @@ function PhotoCoach() {
             </button>
           )}
 
-          {preview && (
-            <button
-              type="button"
-              onClick={openPicker}
-              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
-            >
-              <Camera size={16} />
-              다른 사진으로 변경
-            </button>
+          {analyze.data?.oneLiner && (
+            <div className="relative mt-3 overflow-hidden rounded-2xl bg-gradient-to-br from-pink/15 via-pink-light to-purple-light p-4 ring-1 ring-pink/20">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-pink">AI 한 줄 평</div>
+              <p className="text-[15px] font-semibold leading-snug text-foreground">"{analyze.data.oneLiner}"</p>
+            </div>
           )}
-
-
-
 
           <input
             ref={inputRef}
@@ -162,6 +146,19 @@ function PhotoCoach() {
         )}
 
         {analyze.data && <Result data={analyze.data} colorOf={scoreColor} />}
+
+        {preview && (
+          <div className="px-4 pb-6 pt-1">
+            <button
+              type="button"
+              onClick={openPicker}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
+            >
+              <Camera size={16} />
+              다른 사진으로 변경
+            </button>
+          </div>
+        )}
       </div>
     </PhoneShell>
   );
@@ -173,12 +170,7 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
       <h2 className="px-4 pt-1 pb-3 text-base font-semibold">분석 결과</h2>
 
       <div className="space-y-2.5 px-4">
-        {data.oneLiner && (
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink/15 via-pink-light to-purple-light p-4 ring-1 ring-pink/20">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-pink">AI 한 줄 평</div>
-            <p className="text-[15px] font-semibold leading-snug text-foreground">"{data.oneLiner}"</p>
-          </div>
-        )}
+
 
         <ScoreBar icon={<Smile size={18} />} label="표정 자연스러움" value={data.expression} klass={colorOf(data.expression)} />
         <ScoreBar icon={<Sun size={18} />} label="밝기 & 배경" value={data.brightness} klass={colorOf(data.brightness)} />
