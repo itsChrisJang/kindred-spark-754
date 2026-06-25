@@ -70,6 +70,7 @@ export interface PhotoAnalysis {
   photoType: "selfie" | "portrait" | "fullbody" | "group" | "scenery";
   suitability: "main" | "sub" | "replace";
   suitabilityReason: string;
+  oneLiner: string;
   tips: { type: "good" | "improve"; text: string }[];
 }
 
