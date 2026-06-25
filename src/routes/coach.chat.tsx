@@ -35,14 +35,16 @@ function ChatPractice() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
-    const el = scrollRef.current;
-    if (!el) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+        const el = scrollRef.current;
+        if (el) {
+          el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+        }
       });
     });
   };
+
 
   const send = useMutation({
     mutationFn: (text: string) => {
