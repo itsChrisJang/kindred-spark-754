@@ -74,12 +74,9 @@ function Places() {
                 <option key={a} value={a}>{a}</option>
               ))}
             </select>
-            <button
-              onClick={() => refetch()}
-              className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink"
-            >
-              새로 추천
-            </button>
+            <span className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink">
+              {main.length + after.length}곳
+            </span>
           </div>
         </div>
 
