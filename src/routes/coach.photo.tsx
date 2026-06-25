@@ -109,11 +109,8 @@ function PhotoCoach() {
                 <div className="mt-1 text-xs text-text-3">JPG · PNG · 5MB 이하 권장</div>
               </div>
 
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/10 px-4 py-2 text-xs font-semibold text-foreground backdrop-blur ring-1 ring-foreground/10">
-                <Camera size={14} strokeWidth={2} />
-                사진 선택
-              </span>
             </button>
+
           )}
 
           {analyze.data?.oneLiner && (
