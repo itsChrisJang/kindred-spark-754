@@ -170,12 +170,7 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
       <h2 className="px-4 pt-1 pb-3 text-base font-semibold">분석 결과</h2>
 
       <div className="space-y-2.5 px-4">
-        {data.oneLiner && (
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink/15 via-pink-light to-purple-light p-4 ring-1 ring-pink/20">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-pink">AI 한 줄 평</div>
-            <p className="text-[15px] font-semibold leading-snug text-foreground">"{data.oneLiner}"</p>
-          </div>
-        )}
+
 
         <ScoreBar icon={<Smile size={18} />} label="표정 자연스러움" value={data.expression} klass={colorOf(data.expression)} />
         <ScoreBar icon={<Sun size={18} />} label="밝기 & 배경" value={data.brightness} klass={colorOf(data.brightness)} />
