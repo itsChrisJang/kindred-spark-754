@@ -62,6 +62,7 @@ export const analyzePhotoFn = createServerFn({ method: "POST" })
   "photoType": "selfie" | "portrait" | "fullbody" | "group" | "scenery",
   "suitability": "main" | "sub" | "replace",
   "suitabilityReason": "<왜 그 등급인지 한국어 1문장>",
+  "oneLiner": "<사진을 본 솔직한 한 줄 평. 한국어 1문장, 18-40자. 자극적이고 웃긴 톤(살짝 디스 + 위트). 예: '소개팅 사진 맞아요? 증명사진 같은데요 ㅋㅋ', '이 각도, 본인 인생샷이라고 우기는 그 사진이죠?', '잘생긴 건 알겠는데 표정이 면접 보러 온 사람 같아요'. 인신공격·외모비하·성별/외형 비하 금지. 본인이 들어도 빵 터지는 친구 톤.">,
   "tips": [
     {"type": "good" | "improve", "text": "<한국어 코멘트>"}
   ]
