@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search, Star, ExternalLink, Utensils } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
-import { api, type DatePlace } from "@/lib/api";
+import { type DatePlace } from "@/lib/api";
+import placesSeed from "@/data/places.json";
 
+type SeedPlace = DatePlace & { area: string; mood?: string };
+const SEED = placesSeed as SeedPlace[];
 
 export const Route = createFileRoute("/places")({
   head: () => ({
@@ -20,8 +22,8 @@ export const Route = createFileRoute("/places")({
 const CATEGORIES = ["전체", "카페", "레스토랑", "와인바", "액티비티"];
 const AREAS = ["성수동", "한남동", "강남", "홍대", "이태원", "연남동"];
 const PRICE = ["전체", "1만원 이하", "1만~3만원", "3만~5만원", "5만원 이상"];
-const MOOD = ["전체", "조용함", "감성적", "활기참", "프라이빗", "뷰 맛집"];
-const SORT = ["추천순", "평점순", "가까운순"] as const;
+const MOOD = ["전체", "조용함", "감성적", "활기참", "프라이빗"];
+const SORT = ["추천순", "평점순"] as const;
 type Sort = (typeof SORT)[number];
 
 function naverMapUrl(name: string, address: string) {
@@ -41,25 +43,20 @@ function Places() {
   const [mood, setMood] = useState("전체");
   const [sort, setSort] = useState<Sort>("추천순");
 
-  const { data: places = [], isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["places", area, cat, price, mood],
-    queryFn: () =>
-      api.recommendPlaces({
-        area,
-        category: cat,
-        priceRange: price === "전체" ? undefined : price,
-        mood: mood === "전체" ? undefined : mood,
-      }),
-    staleTime: 5 * 60 * 1000,
-  });
+  const filtered = useMemo(() => {
+    return SEED.filter((p) => p.area === area)
+      .filter((p) => cat === "전체" || p.category === cat)
+      .filter((p) => price === "전체" || p.priceRange === price)
+      .filter((p) => mood === "전체" || p.mood === mood);
+  }, [area, cat, price, mood]);
 
-  const sorted = [...places].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     if (sort === "평점순") return b.rating - a.rating;
-    if (sort === "가까운순") return a.distanceKm - b.distanceKm;
-    return 0;
+    return b.reviewCount - a.reviewCount;
   });
   const main = sorted.filter((p) => !p.isAfter);
   const after = sorted.filter((p) => p.isAfter);
+  const isLoading = false;
 
   return (
     <PhoneShell>
@@ -77,12 +74,9 @@ function Places() {
                 <option key={a} value={a}>{a}</option>
               ))}
             </select>
-            <button
-              onClick={() => refetch()}
-              className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink"
-            >
-              새로 추천
-            </button>
+            <span className="rounded-full bg-pink-light px-3 py-1 text-xs font-semibold text-pink">
+              {main.length + after.length}곳
+            </span>
           </div>
         </div>
 
@@ -109,17 +103,15 @@ function Places() {
             lng={(AREA_COORDS[area] ?? AREA_COORDS["성수동"]).lng}
             zoom={14}
             height={180}
-            label={`${area} · AI 추천 ${main.length}곳`}
+            label={`${area} · 추천 ${main.length}곳`}
             pins={main.slice(0, 5).map((p) => ({ lat: p.lat, lng: p.lng, label: p.name }))}
           />
         </div>
 
         <h2 className="px-4 pt-5 pb-3 text-base font-semibold">
           {area} 소개팅하기 좋은 장소
-          {isFetching && !isLoading && <span className="ml-2 text-xs text-text-3">갱신 중…</span>}
         </h2>
         <div className="space-y-3 px-4">
-          {isLoading && <div className="py-8 text-center text-sm text-text-3 animate-pulse">AI가 장소를 추천 중이에요…</div>}
           {!isLoading && main.length === 0 && (
             <div className="py-8 text-center text-sm text-text-3">추천된 장소가 없어요. 다시 시도해주세요.</div>
           )}
