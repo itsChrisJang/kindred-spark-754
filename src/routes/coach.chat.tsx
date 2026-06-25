@@ -35,14 +35,16 @@ function ChatPractice() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
-    const el = scrollRef.current;
-    if (!el) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+        const el = scrollRef.current;
+        if (el) {
+          el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+        }
       });
     });
   };
+
 
   const send = useMutation({
     mutationFn: (text: string) => {
@@ -89,109 +91,117 @@ function ChatPractice() {
 
   return (
     <PhoneShell hideNav>
-      <div className="flex h-full flex-col">
-        <div className="flex-shrink-0 bg-surface">
-          <NavHeader back title="대화 연습" />
-          <div className="px-4 pb-3">
-            <div className="flex gap-2">
-              {MODES.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => switchMode(m.id)}
-                  className={`pill ${mode === m.id ? "pill-active" : ""}`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+      {/* Fixed top header */}
+      <div className="fixed inset-x-0 top-0 z-20 mx-auto w-full max-w-[420px] bg-surface">
+        <NavHeader back title="대화 연습" />
+        <div className="px-4 pb-3">
+          <div className="flex gap-2">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => switchMode(m.id)}
+                className={`pill ${mode === m.id ? "pill-active" : ""}`}
+              >
+                {m.label}
+              </button>
+            ))}
           </div>
         </div>
+        <div className="h-px w-full bg-border/60" />
+      </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
-          <div className="space-y-3">
-            {messages.map((msg, i) =>
-              msg.role === "me" ? (
-                <div key={i} className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-br-md bg-pink px-3.5 py-2.5 text-sm text-white">
-                    {msg.text}
-                  </div>
+      {/* Scrollable messages, sized to fit between header and input */}
+      <div
+        ref={scrollRef}
+        className="overflow-y-auto px-4"
+        style={{ height: "100dvh", paddingTop: "120px", paddingBottom: "88px" }}
+      >
+
+        <div className="space-y-3">
+          {messages.map((msg, i) =>
+            msg.role === "me" ? (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[80%] rounded-2xl rounded-br-md bg-pink px-3.5 py-2.5 text-sm text-white">
+                  {msg.text}
                 </div>
-              ) : (
-                <div key={i} className="flex items-start gap-2">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple">
-                    <Sparkles size={14} className="text-white" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="inline-block max-w-[85%] rounded-2xl rounded-bl-md bg-secondary px-3.5 py-2.5 text-sm">
-                      {msg.text}
-                    </div>
-                    {msg.reply && (
-                      <div className="space-y-1.5">
-                        {msg.reply.good.map((g, gi) => (
-                          <Tip key={"g" + gi} kind="good">{g}</Tip>
-                        ))}
-                        {msg.reply.improve.map((g, gi) => (
-                          <Tip key={"i" + gi} kind="improve">{g}</Tip>
-                        ))}
-                        {msg.reply.suggestions.length > 0 && (
-                          <div className="rounded-2xl border border-border bg-surface p-3.5">
-                            <div className="mb-2 text-xs font-semibold text-purple">💬 이렇게 이어가보세요</div>
-                            <div className="space-y-1.5">
-                              {msg.reply.suggestions.map((s, si) => (
-                                <button
-                                  key={si}
-                                  onClick={() => setInput(s)}
-                                  className={`block w-full rounded-lg px-3 py-2 text-left text-sm ${
-                                    si === 0 ? "bg-purple-light text-foreground" : "bg-secondary text-foreground"
-                                  }`}
-                                >
-                                  {s}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ),
-            )}
-            {send.isPending && (
-              <div className="flex items-start gap-2">
+              </div>
+            ) : (
+              <div key={i} className="flex items-start gap-2">
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple">
                   <Sparkles size={14} className="text-white" />
                 </div>
-                <div className="inline-block rounded-2xl rounded-bl-md bg-secondary px-3.5 py-2.5 text-sm">
-                  <TypingDots />
+                <div className="flex-1 space-y-2">
+                  <div className="inline-block max-w-[85%] rounded-2xl rounded-bl-md bg-secondary px-3.5 py-2.5 text-sm">
+                    {msg.text}
+                  </div>
+                  {msg.reply && (
+                    <div className="space-y-1.5">
+                      {msg.reply.good.map((g, gi) => (
+                        <Tip key={"g" + gi} kind="good">{g}</Tip>
+                      ))}
+                      {msg.reply.improve.map((g, gi) => (
+                        <Tip key={"i" + gi} kind="improve">{g}</Tip>
+                      ))}
+                      {msg.reply.suggestions.length > 0 && (
+                        <div className="rounded-2xl border border-border bg-surface p-3.5">
+                          <div className="mb-2 text-xs font-semibold text-purple">이렇게 이어가보세요</div>
+                          <div className="space-y-1.5">
+                            {msg.reply.suggestions.map((s, si) => (
+                              <button
+                                key={si}
+                                onClick={() => setInput(s)}
+                                className={`block w-full rounded-lg px-3 py-2 text-left text-sm ${
+                                  si === 0 ? "bg-purple-light text-foreground" : "bg-secondary text-foreground"
+                                }`}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
+            ),
+          )}
+          {send.isPending && (
+            <div className="flex items-start gap-2">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple">
+                <Sparkles size={14} className="text-white" />
+              </div>
+              <div className="inline-block rounded-2xl rounded-bl-md bg-secondary px-3.5 py-2.5 text-sm">
+                <TypingDots />
+              </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        <div className="flex-shrink-0 border-t border-border bg-surface px-4 py-3 pb-6">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="메시지를 입력하세요..."
-              className="flex-1 rounded-full bg-secondary px-4 py-2.5 text-sm outline-none"
-            />
-            <button
-              type="submit"
-              disabled={send.isPending}
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-pink text-white disabled:opacity-50"
-              aria-label={input.trim() ? "보내기" : "음성 입력"}
-            >
-              {input.trim() ? <Send size={16} /> : <Mic size={18} />}
-            </button>
-          </form>
-        </div>
+      {/* Fixed bottom input */}
+      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[420px] border-t border-border bg-surface px-4 pt-3 pb-[max(env(safe-area-inset-bottom),12px)]">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="메시지를 입력하세요..."
+            className="flex-1 rounded-full bg-secondary px-4 py-2.5 text-sm outline-none"
+          />
+          <button
+            type="submit"
+            disabled={send.isPending}
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-pink text-white disabled:opacity-50"
+            aria-label={input.trim() ? "보내기" : "음성 입력"}
+          >
+            {input.trim() ? <Send size={16} /> : <Mic size={18} />}
+          </button>
+        </form>
       </div>
     </PhoneShell>
   );
 }
+
 
 function TypingDots() {
   const [n, setN] = useState(1);
