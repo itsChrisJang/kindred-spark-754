@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
+
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
