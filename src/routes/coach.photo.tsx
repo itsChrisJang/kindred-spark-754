@@ -147,7 +147,7 @@ function PhotoCoach() {
 
         {analyze.data && <Result data={analyze.data} colorOf={scoreColor} />}
 
-        {preview && (
+        {preview && !analyze.isPending && (
           <div className="px-4 pb-6 pt-1">
             <button
               type="button"
