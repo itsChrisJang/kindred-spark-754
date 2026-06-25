@@ -66,6 +66,9 @@ function PhotoCoach() {
           {preview ? (
             <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-3xl bg-surface-2 shadow-sm ring-1 ring-border">
               <img src={preview} alt="업로드된 사진" className="absolute inset-0 h-full w-full object-cover" />
+
+              {analyze.isPending && <ScanOverlay />}
+
               {analyze.data && (
                 <div className="z-10 w-full bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 pt-8">
                   <div className="flex items-end justify-between">
