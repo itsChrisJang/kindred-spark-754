@@ -10,6 +10,14 @@ export interface PhotoAnalysisResult {
   retouchLevel: "natural" | "moderate" | "heavy";
   retouchScore: number;
   isAiGenerated: boolean;
+  styleScore: number;
+  styleComment: string;
+  compositionScore: number;
+  gazeDirection: "camera" | "side" | "away";
+  framing: "closeup" | "bust" | "fullbody" | "wide";
+  photoType: "selfie" | "portrait" | "fullbody" | "group" | "scenery";
+  suitability: "main" | "sub" | "replace";
+  suitabilityReason: string;
   tips: { type: "good" | "improve"; text: string }[];
 }
 
