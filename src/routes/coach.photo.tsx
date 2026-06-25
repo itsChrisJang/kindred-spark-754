@@ -94,7 +94,7 @@ function PhotoCoach() {
           ) : (
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={openPicker}
               className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm"
             >
               <div
@@ -127,7 +127,7 @@ function PhotoCoach() {
           {preview && (
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={openPicker}
               className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
             >
               <Camera size={16} />
