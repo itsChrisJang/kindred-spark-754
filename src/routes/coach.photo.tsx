@@ -99,7 +99,7 @@ function PhotoCoach() {
             <button
               type="button"
               onClick={openPicker}
-              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm"
+              className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm active:scale-[0.99] active:bg-surface-2"
             >
               <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-light text-pink ring-1 ring-pink/15 transition-transform group-hover:scale-105">
                 <ImagePlus size={28} strokeWidth={1.75} />
