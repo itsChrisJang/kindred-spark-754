@@ -196,10 +196,12 @@ function PlaceCard({ p }: { p: DatePlace }) {
             <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
             <span className="text-text-3">({p.reviewCount.toLocaleString()})</span>
           </div>
-          <div className="flex items-center gap-1 text-text-3">
-            <MapPin size={12} />
-            {p.distanceKm.toFixed(1)}km
-          </div>
+          {typeof p.distanceKm === "number" && (
+            <div className="flex items-center gap-1 text-text-3">
+              <MapPin size={12} />
+              {p.distanceKm.toFixed(1)}km
+            </div>
+          )}
         </div>
 
         <a
