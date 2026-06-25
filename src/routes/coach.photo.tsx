@@ -282,52 +282,27 @@ function suitabilityClass(s: PhotoAnalysis["suitability"]) {
 function ScanOverlay() {
   return (
     <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-3xl">
-      {/* dark tint */}
-      <div className="absolute inset-0 bg-black/35" />
+      <div className="absolute inset-0 bg-black/25" />
 
-      {/* grid */}
+      {/* diagonal sweeping light */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute -inset-1/2"
         style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.25) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
+          background:
+            "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.18) 49%, rgba(255,182,205,0.55) 50%, rgba(255,255,255,0.18) 51%, transparent 58%)",
+          animation: "photo-scan-diag 2.6s linear infinite",
         }}
       />
 
-      {/* corner brackets */}
-      {[
-        "top-3 left-3 border-l-2 border-t-2",
-        "top-3 right-3 border-r-2 border-t-2",
-        "bottom-3 left-3 border-l-2 border-b-2",
-        "bottom-3 right-3 border-r-2 border-b-2",
-      ].map((c, i) => (
-        <span key={i} className={`absolute h-7 w-7 rounded-[6px] border-pink ${c}`} />
-      ))}
-
-      {/* scanning line */}
-      <div className="absolute inset-x-0 top-0 h-full">
-        <div
-          className="absolute inset-x-2 h-[2px] rounded-full bg-pink shadow-[0_0_18px_4px_var(--color-pink)]"
-          style={{ animation: "photo-scan 2.2s ease-in-out infinite" }}
-        />
-        <div
-          className="absolute inset-x-0 h-24 -translate-y-1/2 bg-gradient-to-b from-transparent via-pink/30 to-transparent"
-          style={{ animation: "photo-scan 2.2s ease-in-out infinite" }}
-        />
-      </div>
-
-      {/* label */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-semibold tracking-wider text-white backdrop-blur">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-white backdrop-blur">
         <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-pink align-middle" />
-        AI 분석 중
+        분석 중
       </div>
 
       <style>{`
-        @keyframes photo-scan {
-          0%   { top: 0%; }
-          50%  { top: 100%; }
-          100% { top: 0%; }
+        @keyframes photo-scan-diag {
+          0%   { transform: translate(-30%, -30%); }
+          100% { transform: translate(30%, 30%); }
         }
       `}</style>
     </div>
