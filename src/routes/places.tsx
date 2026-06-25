@@ -103,7 +103,7 @@ function Places() {
             lng={(AREA_COORDS[area] ?? AREA_COORDS["성수동"]).lng}
             zoom={14}
             height={180}
-            label={`${area} · AI 추천 ${main.length}곳`}
+            label={`${area} · 추천 ${main.length}곳`}
             pins={main.slice(0, 5).map((p) => ({ lat: p.lat, lng: p.lng, label: p.name }))}
           />
         </div>
