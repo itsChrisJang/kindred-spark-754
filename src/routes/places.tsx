@@ -240,7 +240,7 @@ function Places() {
               <button
                 key={value}
                 onClick={() => setCat(value)}
-                className={`flex flex-shrink-0 flex-col items-center gap-1 rounded-2xl border px-3.5 py-2 transition-all ${
+                className={`flex flex-shrink-0 flex-col items-center gap-1 rounded-2xl border px-5 pt-2 pb-1.5 transition-all ${
                   active
                     ? "border-pink bg-pink text-white shadow-sm"
                     : "border-border bg-surface text-text-2"
