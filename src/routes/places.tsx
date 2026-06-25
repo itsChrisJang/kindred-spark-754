@@ -112,7 +112,6 @@ function Places() {
           {area} 소개팅하기 좋은 장소
         </h2>
         <div className="space-y-3 px-4">
-          {isLoading && <div className="py-8 text-center text-sm text-text-3 animate-pulse">AI가 장소를 추천 중이에요…</div>}
           {!isLoading && main.length === 0 && (
             <div className="py-8 text-center text-sm text-text-3">추천된 장소가 없어요. 다시 시도해주세요.</div>
           )}
