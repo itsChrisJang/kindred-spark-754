@@ -167,6 +167,8 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
       <div className="space-y-2.5 px-4">
         <ScoreBar icon={<Smile size={18} />} label="표정 자연스러움" value={data.expression} klass={colorOf(data.expression)} />
         <ScoreBar icon={<Sun size={18} />} label="밝기 & 배경" value={data.brightness} klass={colorOf(data.brightness)} />
+        <ScoreBar icon={<Shirt size={18} />} label="스타일 · 옷차림" value={data.styleScore} klass={colorOf(data.styleScore)} />
+        <ScoreBar icon={<Eye size={18} />} label="시선 · 구도" value={data.compositionScore} klass={colorOf(data.compositionScore)} />
         <ScoreBar
           icon={<Wand2 size={18} />}
           label="보정 정도"
@@ -174,6 +176,42 @@ function Result({ data, colorOf }: { data: PhotoAnalysis; colorOf: (s: number) =
           klass={colorOf(data.retouchScore)}
           valueText={data.retouchLevel === "natural" ? "자연스러움" : data.retouchLevel === "moderate" ? "보통" : "과함"}
         />
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Shirt size={18} className="text-text-2" />
+            <span className="text-sm font-medium">스타일 코멘트</span>
+          </div>
+          <p className="text-sm leading-relaxed text-text-2">{data.styleComment}</p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye size={18} className="text-text-2" />
+              <span className="text-sm font-medium">시선 · 구도</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="tag-base bg-secondary text-text-2">시선 {gazeLabel(data.gazeDirection)}</span>
+            <span className="tag-base bg-secondary text-text-2">구도 {framingLabel(data.framing)}</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users size={18} className="text-text-2" />
+              <span className="text-sm font-medium">사진 종류 · 적합도</span>
+            </div>
+            <span className={`tag-base ${suitabilityClass(data.suitability)}`}>{suitabilityLabel(data.suitability)}</span>
+          </div>
+          <div className="mb-2">
+            <span className="tag-base bg-secondary text-text-2">{photoTypeLabel(data.photoType)}</span>
+          </div>
+          <p className="text-sm leading-relaxed text-text-2">{data.suitabilityReason}</p>
+        </div>
+
         <div className="rounded-2xl border border-border bg-surface p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
