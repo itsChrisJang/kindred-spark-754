@@ -139,9 +139,6 @@ function PhotoCoach() {
           />
         </div>
 
-        {analyze.isPending && (
-          <div className="px-4 py-6 text-center text-sm text-text-3 animate-pulse">AI가 사진을 분석 중이에요…</div>
-        )}
         {analyze.isError && (
           <div className="mx-4 rounded-xl bg-red-50 p-4 text-sm text-red-600">
             {(analyze.error as Error).message}
