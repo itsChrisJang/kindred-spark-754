@@ -34,6 +34,13 @@ function PhotoCoach() {
     },
   });
 
+  function openPicker() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.value = ""; // 같은 파일 재선택 허용
+    el.click();
+  }
+
   async function onFile(f?: File) {
     if (!f) return;
     setPreview(URL.createObjectURL(f));
@@ -45,6 +52,7 @@ function PhotoCoach() {
     analyze.reset();
     if (inputRef.current) inputRef.current.value = "";
   }
+
 
   const scoreColor = (s: number) => (s >= 85 ? "bg-green-500 text-green-500" : s >= 70 ? "bg-amber-500 text-amber-500" : "bg-pink text-pink");
 
@@ -86,7 +94,7 @@ function PhotoCoach() {
           ) : (
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={openPicker}
               className="group relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl bg-surface ring-1 ring-border transition-all hover:ring-pink/40 hover:shadow-sm"
             >
               <div
@@ -119,7 +127,7 @@ function PhotoCoach() {
           {preview && (
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={openPicker}
               className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
             >
               <Camera size={16} />
