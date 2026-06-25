@@ -389,7 +389,7 @@ function FilterSheet({
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-[440px] animate-in slide-in-from-bottom rounded-t-3xl bg-bg pb-6">
+      <div className="relative z-10 w-full max-w-[440px] animate-in slide-in-from-bottom rounded-t-3xl bg-surface pb-6 shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.18)]">
         <div className="flex items-center justify-between px-5 pb-2 pt-3">
           <div className="mx-auto h-1 w-10 rounded-full bg-border" />
         </div>
