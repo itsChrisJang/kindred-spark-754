@@ -105,6 +105,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Dancing+Script:wght@700&family=Anton&display=swap" },
       {
         rel: "stylesheet",
         href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css",
@@ -148,10 +151,11 @@ const PUBLIC_PATHS = ["/login"];
 
 function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [checked, setChecked] = useState(false);
-  const [hasSession, setHasSession] = useState(false);
+  const [checked, setChecked] = useState(import.meta.env.DEV);
+  const [hasSession, setHasSession] = useState(import.meta.env.DEV);
 
   useEffect(() => {
+    if (import.meta.env.DEV) return;
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;

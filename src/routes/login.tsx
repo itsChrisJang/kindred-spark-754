@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Heart, Shield } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,9 +23,7 @@ function Login() {
     supabase.auth.getSession().then(({ data }) => {
       if (mounted && data.session) nav({ to: "/" });
     });
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [nav]);
 
   const google = useMutation({
@@ -41,30 +38,15 @@ function Login() {
 
   return (
     <PhoneShell hideNav>
-      <div className="flex min-h-dvh flex-col justify-between px-6 pt-12 pb-10">
-        <div>
-          <div className="brand-gradient mb-6 flex h-16 w-16 items-center justify-center rounded-3xl shadow-lg">
-            <Heart size={30} fill="white" className="text-white" />
-          </div>
-          <h1 className="text-[26px] font-bold leading-tight">
-            소개팅,<br />조금 더 잘 준비해볼까요?
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-text-2">
-            사진, 대화, 장소까지 — 만남 전부터 차분히 챙겨드릴게요.
-          </p>
-
-          <div className="mt-6 flex items-start gap-2 rounded-2xl border border-border bg-secondary p-3.5">
-            <Shield size={16} className="mt-0.5 flex-shrink-0 text-purple" />
-            <div className="text-[12px] leading-relaxed text-text-2">
-              <span className="font-semibold text-foreground">
-                구글 계정으로 안전하게 로그인하세요.
-              </span>{" "}
-              개인정보는 암호화되어 보호되며, 본인만 접근할 수 있습니다.
-            </div>
-          </div>
+      <div
+        className="flex min-h-dvh flex-col items-center justify-between pb-10"
+        style={{ background: "#fff" }}
+      >
+        <div className="flex flex-1 w-full items-center justify-center">
+          <HandwritingAnimation />
         </div>
 
-        <div className="pt-6">
+        <div className="w-full px-6">
           <button
             onClick={() => google.mutate()}
             disabled={google.isPending}
@@ -78,14 +60,117 @@ function Login() {
               {(google.error as Error).message}
             </div>
           )}
-          <div className="mt-4 text-center text-[11px] leading-relaxed text-text-3">
-            계속 진행하면 <span className="text-pink">이용약관</span> ·{" "}
-            <span className="text-pink">개인정보처리방침</span>에 동의하는 것으로
-            간주됩니다.
-          </div>
         </div>
       </div>
     </PhoneShell>
+  );
+}
+
+/**
+ * opentype.js로 Dancing Script 폰트를 SVG path로 변환한 뒤
+ * stroke-dashoffset 애니메이션으로 펜이 그려지는 효과
+ */
+function HandwritingAnimation() {
+  const [paths, setPaths] = useState<{ d: string; len: number }[]>([]);
+  const [viewBox, setViewBox] = useState("0 0 360 120");
+  const pathRefs = useRef<(SVGPathElement | null)[]>([]);
+  const rafRef   = useRef<number>(0);
+
+  // opentype.js로 폰트 로드 → path 추출
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const [mod, res] = await Promise.all([
+        import("opentype.js"),
+        fetch(
+          "https://fonts.gstatic.com/s/dancingscript/v29/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B1i03Sup5.ttf"
+        ),
+      ]);
+      if (cancelled || !res.ok) return;
+
+      const buffer = await res.arrayBuffer();
+      if (cancelled) return;
+
+      // v2 API: parse(buffer)
+      const opentype = mod.default ?? mod;
+      const font = (opentype as any).parse(buffer);
+
+      const FONT_SIZE = 100;
+      const PAD = 10;
+      const fullPath = (font as any).getPath("Rotate", PAD, FONT_SIZE + PAD, FONT_SIZE);
+      const bbox = fullPath.getBoundingBox();
+      const vw = Math.ceil(bbox.x2 - bbox.x1) + PAD * 2 + 10;
+      const vh = Math.ceil(bbox.y2 - bbox.y1) + PAD * 2;
+
+      if (cancelled) return;
+      const vb = `${bbox.x1 - PAD} ${bbox.y1 - PAD} ${vw} ${vh}`;
+      console.log('[opentype] bbox', bbox, 'viewBox', vb, 'pathLen', fullPath.toPathData(2).length);
+      setViewBox(vb);
+      setPaths([{ d: fullPath.toPathData(2), len: 0 }]);
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // path가 마운트된 뒤 getTotalLength → dashoffset 애니메이션
+  useEffect(() => {
+    if (paths.length === 0) return;
+
+    const el = pathRefs.current[0];
+    if (!el) return;
+
+    const len = el.getTotalLength();
+    console.log('[opentype] getTotalLength =', len, 'el:', el.tagName, 'd slice:', el.getAttribute('d')?.slice(0, 50));
+    // SVG attribute 방식으로 설정 (CSS unit 문제 방지)
+    el.setAttribute("stroke-dasharray",  String(len));
+    el.setAttribute("stroke-dashoffset", String(len));
+
+    const DURATION = 2600;
+    let start: number | null = null;
+    const ease = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const draw = (ts: number) => {
+      if (!start) start = ts;
+      const t = ease(Math.min((ts - start) / DURATION, 1));
+      el.setAttribute("stroke-dashoffset", String(len * (1 - t)));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(draw);
+      } else {
+        el.setAttribute("fill", "#111");
+        el.setAttribute("stroke", "none");
+      }
+    };
+
+    const timer = setTimeout(() => {
+      rafRef.current = requestAnimationFrame(draw);
+    }, 350);
+
+    return () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [paths]);
+
+  return (
+    <svg
+      viewBox={viewBox}
+      style={{ width: "min(340px, 82vw)", display: "block", overflow: "visible" }}
+    >
+      {paths.map((p, i) => (
+        <path
+          key={i}
+          ref={(el) => { pathRefs.current[i] = el; }}
+          d={p.d}
+          fill="transparent"
+          stroke="#111"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
   );
 }
 

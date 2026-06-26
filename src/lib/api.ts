@@ -24,6 +24,45 @@ import { saveProfileFn, getMyProfileFn } from "./profile.functions";
 export type Gender = "M" | "F";
 export type MeetingRatio = "2:2" | "3:3" | "4:4" | "5:5";
 
+export type PostSite =
+  | "LOVEMATCHING" | "MISEOL" | "MODPARTY"
+  | "ORANGES"     | "RETURN2ME" | "SOLO_OFF" | "YEONIN";
+
+export interface PostSession {
+  date?: string;
+  time?: string;
+  ratio?: string;
+  status?: string;
+}
+
+export interface Post {
+  id: string;
+  site: PostSite;
+  sourceId: string;
+  title: string;
+  crawlJobId: string;
+  crawledAt: string;
+  address: string | null;
+  badges: string[];
+  code: string | null;
+  contentText: string | null;
+  couponPrice: number | null;
+  datetime: string | null;
+  detailUrl: string | null;
+  duration: string | null;
+  imageUrl: string | null;
+  listPrice: number | null;
+  mapLink: string | null;
+  postedDate: string | null;
+  price: number | null;
+  promo: string | null;
+  region: string | null;
+  regionGroup: string | null;
+  sessions: PostSession[];
+  soldout: boolean;
+  venue: string | null;
+}
+
 export interface Meeting {
   id: string;
   title: string;
@@ -100,6 +139,36 @@ export interface DatePlace {
   imageQuery?: string;
 }
 
+// ── Post helpers ─────────────────────────────────────────
+
+type PostRow = {
+  id: string; site: string; source_id: string; title: string;
+  crawl_job_id: string; crawled_at: string; soldout: boolean;
+  posted_date: string | null; price: number | null; list_price: number | null;
+  coupon_price: number | null; region: string | null; region_group: string | null;
+  code: string | null; address: string | null; badges: string | null;
+  content_text: string | null; datetime: string | null; detail_url: string | null;
+  duration: string | null; image_url: string | null; map_link: string | null;
+  promo: string | null; sessions: string | null; venue: string | null;
+};
+
+function rowToPost(r: PostRow): Post {
+  let badges: string[] = [];
+  try { badges = JSON.parse(r.badges ?? "[]"); } catch {}
+  let sessions: PostSession[] = [];
+  try { sessions = JSON.parse(r.sessions ?? "[]"); } catch {}
+  return {
+    id: r.id, site: r.site as PostSite, sourceId: r.source_id, title: r.title,
+    crawlJobId: r.crawl_job_id, crawledAt: r.crawled_at ?? "",
+    address: r.address, badges, code: r.code, contentText: r.content_text,
+    couponPrice: r.coupon_price, datetime: r.datetime, detailUrl: r.detail_url,
+    duration: r.duration, imageUrl: r.image_url, listPrice: r.list_price,
+    mapLink: r.map_link, postedDate: r.posted_date, price: r.price,
+    promo: r.promo, region: r.region, regionGroup: r.region_group,
+    sessions, soldout: r.soldout ?? false, venue: r.venue,
+  };
+}
+
 // ── Helpers ──────────────────────────────────────────────
 type MeetingRow = {
   id: string;
@@ -150,8 +219,38 @@ async function myJoinedIds(): Promise<Set<string>> {
   return new Set((data ?? []).map((r) => r.meeting_id));
 }
 
+
 // ── API ──────────────────────────────────────────────────
 export const api = {
+  // Posts (Supabase) ------------------------------------
+  async listPosts(filter?: { site?: PostSite; region?: string; page?: number }): Promise<Post[]> {
+    const limit = 50;
+    const offset = ((filter?.page ?? 1) - 1) * limit;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q = (supabase as any).from("post").select("*").range(offset, offset + limit - 1);
+    if (filter?.site) q = q.eq("site", filter.site);
+    if (filter?.region) q = q.or(`region.ilike.%${filter.region}%,region_group.ilike.%${filter.region}%`);
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    const rows: PostRow[] = data ?? [];
+    return rows
+      .sort((a, b) => {
+        const sa = (a.image_url ? 1 : 0) + (a.price ? 1 : 0);
+        const sb = (b.image_url ? 1 : 0) + (b.price ? 1 : 0);
+        if (sb !== sa) return sb - sa;
+        return new Date(b.crawled_at).getTime() - new Date(a.crawled_at).getTime();
+      })
+      .map(rowToPost);
+  },
+
+  async getPost(id: string): Promise<Post> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).from("post").select("*").eq("id", id).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("공고를 찾을 수 없어요");
+    return rowToPost(data as PostRow);
+  },
+
   // Auth -------------------------------------------------
   async signOut() {
     await supabase.auth.signOut();

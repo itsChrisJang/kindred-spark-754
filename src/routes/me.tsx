@@ -1,15 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Calendar, LogOut, User as UserIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronRight, Bookmark, LogOut, User as UserIcon, ExternalLink } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
-import { Link } from "@tanstack/react-router";
 import { api } from "@/lib/api";
+import { SITE_META } from "./index";
+
+const SAVED_KEY = "saved_posts";
+
+export type SavedPost = {
+  id: string;
+  site: string;
+  title: string;
+  price: number | null;
+  imageUrl: string | null;
+  detailUrl: string | null;
+  soldout: boolean;
+};
+
+export function getSavedPosts(): SavedPost[] {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) ?? "[]"); } catch { return []; }
+}
 
 export const Route = createFileRoute("/me")({
   head: () => ({
     meta: [
       { title: "내 모임 — 로테이트" },
-      { name: "description", content: "내가 참여한 소개팅 모임을 한눈에 확인해요." },
+      { name: "description", content: "내가 저장한 소개팅 공고를 한눈에 확인해요." },
     ],
   }),
   component: Me,
@@ -17,8 +34,18 @@ export const Route = createFileRoute("/me")({
 
 function Me() {
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => api.getMyProfile() });
-  const { data: mine = [] } = useQuery({ queryKey: ["my-meetings"], queryFn: () => api.myMeetings() });
   const { data: user } = useQuery({ queryKey: ["auth-user"], queryFn: () => api.currentUser() });
+  const [saved, setSaved] = useState<SavedPost[]>([]);
+
+  useEffect(() => {
+    setSaved(getSavedPosts());
+  }, []);
+
+  function removeSaved(id: string) {
+    const next = saved.filter((p) => p.id !== id);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+    setSaved(next);
+  }
 
   async function logout() {
     await api.signOut();
@@ -46,41 +73,66 @@ function Me() {
           <ChevronRight size={18} className="text-text-3" />
         </Link>
 
-        <h2 className="px-1 pb-3 text-base font-semibold">참여 중인 모임</h2>
-        {mine.length === 0 ? (
+        <h2 className="px-1 pb-3 text-base font-semibold">저장한 공고</h2>
+        {saved.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
-            <Calendar size={28} className="mx-auto text-text-3" />
-            <div className="mt-2 text-sm text-text-2">아직 참여한 모임이 없어요</div>
-            <Link to="/" className="mt-3 inline-block text-xs font-semibold text-pink">모임 둘러보기 →</Link>
+            <Bookmark size={28} className="mx-auto text-text-3" />
+            <div className="mt-2 text-sm text-text-2">저장한 공고가 없어요</div>
+            <Link to="/" className="mt-3 inline-block text-xs font-semibold text-pink">공고 둘러보기 →</Link>
           </div>
         ) : (
           <div className="space-y-2.5">
-            {mine.map((m) => (
-              <Link
-                key={m.id}
-                to="/meetings/$id"
-                params={{ id: m.id }}
-                className="block rounded-2xl border border-border bg-surface p-4"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-[15px] font-semibold">{m.title}</div>
-                    <div className="mt-0.5 text-xs text-text-3">
-                      {new Date(m.startsAt).toLocaleString("ko-KR", { month: "long", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit" })}
+            {saved.map((p) => {
+              const site = SITE_META[p.site as keyof typeof SITE_META];
+              return (
+                <div key={p.id} className="overflow-hidden rounded-2xl border border-border bg-surface">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <span className="mb-1.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: site?.bg, color: site?.color }}>
+                          {site?.label}
+                        </span>
+                        <div className={`text-[14px] font-semibold leading-snug ${p.soldout ? "opacity-50" : ""}`}>{p.title}</div>
+                      </div>
+                      {p.imageUrl && (
+                        <img src={p.imageUrl} alt="" className="h-14 w-20 flex-shrink-0 rounded-xl object-cover" />
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.soldout ? "bg-gray-100 text-text-3" : "bg-green-50 text-green-600"}`}>
+                        {p.soldout ? "마감" : "모집중"}
+                      </span>
+                      {p.price != null && (
+                        <span className="text-[12px] font-bold text-foreground">{p.price.toLocaleString("ko-KR")}원</span>
+                      )}
                     </div>
                   </div>
-                  <span className="tag-base bg-pink-light text-pink">{m.ratio}</span>
+                  <div className="flex border-t border-border">
+                    {p.detailUrl && (
+                      <a
+                        href={p.detailUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium"
+                        style={{ color: site?.color }}
+                      >
+                        <ExternalLink size={12} />
+                        신청하기
+                      </a>
+                    )}
+                    <button
+                      onClick={() => removeSaved(p.id)}
+                      className="flex flex-1 items-center justify-center gap-1.5 border-l border-border py-2.5 text-xs font-medium text-text-3"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-text-2">
-                  <span>{m.location} · {m.venueType}</span>
-                  <span className={m.status === "CLOSED" ? "text-text-3" : "text-green-600"}>
-                    {m.status === "CLOSED" ? "마감" : "진행 중"}
-                  </span>
-                </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
+        <div className="h-6" />
       </div>
     </PhoneShell>
   );
