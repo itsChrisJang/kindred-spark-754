@@ -5,7 +5,7 @@ import { PhoneShell } from "@/components/PhoneShell";
 export const Route = createFileRoute("/coach/")({
   head: () => ({
     meta: [
-      { title: "소개팅 준비 — 포테이토" },
+      { title: "소개팅 준비 — 로테이트" },
       { name: "description", content: "사진, 대화, 장소, 룩까지. 소개팅 전 필요한 준비를 한곳에서 챙겨보세요." },
     ],
   }),

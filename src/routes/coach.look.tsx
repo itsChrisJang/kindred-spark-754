@@ -8,7 +8,7 @@ import { recommendLookFn, type LookRecommendation } from "@/lib/ai.functions";
 export const Route = createFileRoute("/coach/look")({
   head: () => ({
     meta: [
-      { title: "오늘의 데이트 룩 — 포테이토" },
+      { title: "오늘의 데이트 룩 — 로테이트" },
       { name: "description", content: "날씨와 장소, 분위기에 어울리는 코디를 골라보세요." },
     ],
   }),

@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "로그인 — 포테이토" },
+      { title: "로그인 — 로테이트" },
       { name: "description", content: "구글 계정으로 간편하게 시작해보세요." },
     ],
   }),

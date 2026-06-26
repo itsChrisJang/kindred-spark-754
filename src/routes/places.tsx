@@ -32,7 +32,7 @@ const placesQueryOptions = (area: string) =>
 export const Route = createFileRoute("/places")({
   head: () => ({
     meta: [
-      { title: "데이트 장소 — 포테이토" },
+      { title: "데이트 장소 — 로테이트" },
       { name: "description", content: "동네, 분위기, 예산에 맞는 데이트 장소를 골라보세요." },
     ],
   }),

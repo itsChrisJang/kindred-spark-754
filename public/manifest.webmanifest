@@ -1,6 +1,6 @@
 {
-  "name": "포테이토 — 소개팅 준비",
-  "short_name": "포테이토",
+  "name": "로테이트 — 소개팅 준비",
+  "short_name": "로테이트",
   "description": "사진, 대화, 장소까지. 소개팅 전에 차분하게 준비해요.",
   "start_url": "/",
   "display": "standalone",

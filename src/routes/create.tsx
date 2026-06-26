@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 export const Route = createFileRoute("/create")({
   head: () => ({
     meta: [
-      { title: "모임 만들기 — 포테이토" },
+      { title: "모임 만들기 — 로테이트" },
       { name: "description", content: "원하는 장소와 인원으로 소개팅 모임을 직접 열어보세요." },
     ],
   }),

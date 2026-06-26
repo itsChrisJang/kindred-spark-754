@@ -7,12 +7,12 @@ import { api, type Meeting } from "@/lib/api";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "포테이토 — 모임 둘러보기" },
+      { title: "로테이트 — 모임 둘러보기" },
       {
         name: "description",
         content: "관심 가는 모임을 둘러보고, 소개팅 전 사진과 대화, 장소까지 차분하게 준비해보세요.",
       },
-      { property: "og:title", content: "포테이토 — 모임 둘러보기" },
+      { property: "og:title", content: "로테이트 — 모임 둘러보기" },
       {
         property: "og:description",
         content: "관심 가는 모임을 둘러보고, 소개팅 전 사진과 대화, 장소까지 차분하게 준비해보세요.",

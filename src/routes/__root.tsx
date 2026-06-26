@@ -79,13 +79,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#FF4B7B" },
-      { title: "포테이토 — 소개팅, 더 잘 준비하기" },
+      { title: "로테이트 — 소개팅, 더 잘 준비하기" },
       {
         name: "description",
         content: "사진, 대화, 장소까지. 소개팅 전에 차분하게 준비할 수 있도록 도와주는 앱이에요.",
       },
-      { property: "og:site_name", content: "포테이토" },
-      { property: "og:title", content: "포테이토 — 소개팅, 더 잘 준비하기" },
+      { property: "og:site_name", content: "로테이트" },
+      { property: "og:title", content: "로테이트 — 소개팅, 더 잘 준비하기" },
       {
         property: "og:description",
         content: "사진, 대화, 장소까지. 소개팅 전에 차분하게 준비할 수 있도록 도와주는 앱이에요.",
@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/og-image.png" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "포테이토 — 소개팅, 더 잘 준비하기" },
+      { name: "twitter:title", content: "로테이트 — 소개팅, 더 잘 준비하기" },
       {
         name: "twitter:description",
         content: "사진, 대화, 장소까지. 소개팅 전에 차분하게 준비할 수 있도록 도와주는 앱이에요.",
