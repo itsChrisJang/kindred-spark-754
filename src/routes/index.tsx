@@ -25,7 +25,7 @@ export const SITE_META: Record<PostSite, { label: string; color: string; bg: str
   YEONIN:       { label: "연인",       color: "#D63384", bg: "#FFF0F8" },
 };
 
-const SITES: PostSite[] = ["SOLO_OFF", "LOVEMATCHING", "MISEOL", "MODPARTY", "ORANGES", "RETURN2ME", "YEONIN"];
+const SITES: PostSite[] = ["SOLO_OFF", "LOVEMATCHING", "MISEOL", "MODPARTY", "ORANGES", "YEONIN"];
 
 function Home() {
   const [activeSite, setActiveSite] = useState<PostSite | undefined>(undefined);
