@@ -196,7 +196,15 @@ export interface AiPlace {
 
 export const recommendPlacesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) => input)
+  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) =>
+    z.object({
+      area: safeText(50),
+      category: safeText(30),
+      priceRange: safeText(40).optional(),
+      mood: safeText(40).optional(),
+    }).parse(input),
+  )
+
   .handler(async ({ data }): Promise<AiPlace[]> => {
     const content = await callAiGateway({
       responseFormat: "json_object",
