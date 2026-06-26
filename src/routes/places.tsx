@@ -122,12 +122,15 @@ function Places() {
   const [areaOpen, setAreaOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
+  const { data: places } = useSuspenseQuery(placesQueryOptions(area));
+
   const filtered = useMemo(() => {
-    return SEED.filter((p) => p.area === area)
+    return (places as SeedPlace[])
       .filter((p) => cat === "전체" || p.category === cat)
       .filter((p) => price === "전체" || p.priceRange === price)
       .filter((p) => mood === "전체" || p.mood === mood);
-  }, [area, cat, price, mood]);
+  }, [places, cat, price, mood]);
+
 
   const sorted = [...filtered].sort((a, b) => {
     if (sort === "평점순") return b.rating - a.rating;
