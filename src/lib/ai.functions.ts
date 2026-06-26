@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAiGateway, parseJsonLoose } from "./ai-gateway.server";
+import { z } from "zod";
+
+const safeText = (max: number) =>
+  z.string().trim().min(1).max(max).regex(/^[^<>"'`{}\\]*$/, "사용할 수 없는 문자가 포함되어 있어요");
+
 
 // ── 1. 사진 분석 ──────────────────────────────────────
 export interface PhotoAnalysisResult {
