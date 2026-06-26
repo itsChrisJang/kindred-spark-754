@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
+function escapeHtml(s: string): string {
+  return String(s).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string
+  ));
+}
+
+
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
@@ -113,8 +120,9 @@ export function MapView({
     if (label) {
       const iw = new kakao.maps.InfoWindow({
         position: new kakao.maps.LatLng(lat, lng),
-        content: `<div style="padding:4px 8px;font-size:11px;font-weight:500;">${label}</div>`,
+        content: `<div style="padding:4px 8px;font-size:11px;font-weight:500;">${escapeHtml(label)}</div>`,
       });
+
       iw.open(map, center);
       markersRef.current.push({ setMap: () => iw.close() });
     }
@@ -128,8 +136,9 @@ export function MapView({
       if (p.label) {
         const iw = new kakao.maps.InfoWindow({
           position: new kakao.maps.LatLng(p.lat, p.lng),
-          content: `<div style="padding:3px 6px;font-size:10px;">${p.label}</div>`,
+          content: `<div style="padding:3px 6px;font-size:10px;">${escapeHtml(p.label)}</div>`,
         });
+
         iw.open(map, marker);
         markersRef.current.push({ setMap: () => iw.close() });
       }

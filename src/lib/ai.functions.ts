@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAiGateway, parseJsonLoose } from "./ai-gateway.server";
+import { z } from "zod";
+
+const safeText = (max: number) =>
+  z.string().trim().min(1).max(max).regex(/^[^<>"'`{}\\]*$/, "사용할 수 없는 문자가 포함되어 있어요");
+
 
 // ── 1. 사진 분석 ──────────────────────────────────────
 export interface PhotoAnalysisResult {
@@ -191,7 +196,15 @@ export interface AiPlace {
 
 export const recommendPlacesFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) => input)
+  .inputValidator((input: { area: string; category: string; priceRange?: string; mood?: string }) =>
+    z.object({
+      area: safeText(50),
+      category: safeText(30),
+      priceRange: safeText(40).optional(),
+      mood: safeText(40).optional(),
+    }).parse(input),
+  )
+
   .handler(async ({ data }): Promise<AiPlace[]> => {
     const content = await callAiGateway({
       responseFormat: "json_object",
@@ -248,7 +261,15 @@ export const recommendLookFn = createServerFn({ method: "POST" })
     weather: "sunny" | "cloudy" | "rainy";
     place: string;
     vibe: string;
-  }) => input)
+  }) =>
+    z.object({
+      gender: z.enum(["M", "F"]),
+      weather: z.enum(["sunny", "cloudy", "rainy"]),
+      place: safeText(50),
+      vibe: safeText(40),
+    }).parse(input),
+  )
+
   .handler(async ({ data }): Promise<LookRecommendation> => {
     const weatherLabel = data.weather === "sunny" ? "맑음" : data.weather === "cloudy" ? "흐림" : "비";
     const genderLabel = data.gender === "M" ? "남성" : "여성";
