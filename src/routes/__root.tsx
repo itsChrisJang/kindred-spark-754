@@ -151,11 +151,10 @@ const PUBLIC_PATHS = ["/login"];
 
 function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [checked, setChecked] = useState(import.meta.env.DEV);
-  const [hasSession, setHasSession] = useState(import.meta.env.DEV);
+  const [checked, setChecked] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
 
   useEffect(() => {
-    if (import.meta.env.DEV) return;
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
