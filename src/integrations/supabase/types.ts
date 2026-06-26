@@ -161,6 +161,90 @@ export type Database = {
         }
         Relationships: []
       }
+      post: {
+        Row: {
+          address: string | null
+          badges: string | null
+          code: string | null
+          content_text: string | null
+          coupon_price: number | null
+          crawl_job_id: string
+          crawled_at: string
+          datetime: string | null
+          detail_url: string | null
+          duration: string | null
+          id: string
+          image_url: string | null
+          list_price: number | null
+          map_link: string | null
+          posted_date: string | null
+          price: number | null
+          promo: string | null
+          region: string | null
+          region_group: string | null
+          sessions: string | null
+          site: string
+          soldout: boolean
+          source_id: string
+          title: string
+          venue: string | null
+        }
+        Insert: {
+          address?: string | null
+          badges?: string | null
+          code?: string | null
+          content_text?: string | null
+          coupon_price?: number | null
+          crawl_job_id: string
+          crawled_at: string
+          datetime?: string | null
+          detail_url?: string | null
+          duration?: string | null
+          id: string
+          image_url?: string | null
+          list_price?: number | null
+          map_link?: string | null
+          posted_date?: string | null
+          price?: number | null
+          promo?: string | null
+          region?: string | null
+          region_group?: string | null
+          sessions?: string | null
+          site: string
+          soldout: boolean
+          source_id: string
+          title: string
+          venue?: string | null
+        }
+        Update: {
+          address?: string | null
+          badges?: string | null
+          code?: string | null
+          content_text?: string | null
+          coupon_price?: number | null
+          crawl_job_id?: string
+          crawled_at?: string
+          datetime?: string | null
+          detail_url?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          list_price?: number | null
+          map_link?: string | null
+          posted_date?: string | null
+          price?: number | null
+          promo?: string | null
+          region?: string | null
+          region_group?: string | null
+          sessions?: string | null
+          site?: string
+          soldout?: boolean
+          source_id?: string
+          title?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number
