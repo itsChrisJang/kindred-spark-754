@@ -1,41 +1,51 @@
+## 목표
 
-# 대화 연습 화면 개선 계획
+현재 `src/data/places.json`에 하드코딩된 데이트 장소 데이터를 Lovable Cloud DB로 옮겨, 코드 배포 없이 데이터를 추가·수정·삭제할 수 있게 만든다.
 
-`src/routes/coach.chat.tsx` 파일만 수정합니다.
+## 변경 사항
 
-## 1. 레이아웃: 헤더 / 입력창 fixed, 가운데만 스크롤
+### 1. DB 스키마 (마이그레이션 1개)
 
-현재는 `NavHeader`와 모드 탭이 일반 흐름에 있고 입력창만 `fixed`라 스크롤 영역이 모호합니다.
+`public.date_places` 테이블 신설.
 
-- `PhoneShell` 안을 flex column 구조로 잡고
-  - **상단 영역(고정)**: `NavHeader` + 모드 탭(자기소개/취미/스몰토크) — `flex-shrink-0 sticky top-0 z-10 bg-surface`
-  - **중간 영역(스크롤)**: 메시지 리스트 — `flex-1 overflow-y-auto` (자체 스크롤). 기존 `.scroll-area-no-nav` 대신 컨테이너 내부 스크롤로 변경
-  - **하단 영역(고정)**: 입력창 — 기존 `fixed bottom-0` 유지하되 모바일 셸 폭(`max-w-[420px]`)에 맞춤
-- 스크롤 컨테이너에 `ref`를 달아 직접 제어
-- 상·하 고정 영역 높이만큼 중간 영역에 `padding`은 불필요(flex로 분할되므로)
+- 컬럼: `id`(text PK, 기존 `sd-1`/`hn-1` 유지), `name`, `category`, `area`, `address`, `lat`, `lng`, `rating`(numeric), `review_count`, `price_range`, `menu_examples`(text[]), `mood`, `is_after`(bool), `reason`, `image_query`, `sort_weight`(int, 추천순용), `created_at`, `updated_at`.
+- RLS ON. 정책:
+  - `TO anon, authenticated` SELECT 허용 — 공개 큐레이션 데이터.
+  - INSERT/UPDATE/DELETE는 정책 없음(어드민이 SQL/대시보드로 관리).
+- GRANT: `SELECT TO anon, authenticated`, `ALL TO service_role`.
+- `set_updated_at` 트리거 1개.
+- 기존 `places.json` 60여 행을 같은 마이그레이션 안에서 `INSERT ... ON CONFLICT DO NOTHING`으로 시드.
 
-## 2. 전송 즉시 내 메시지 반영 + AI "..." 로딩 애니메이션
+### 2. 데이터 접근 (서버 함수)
 
-현재는 `onSuccess`에서 내 메시지와 AI 응답을 한꺼번에 추가해, 응답이 오기 전까지 내 말풍선이 보이지 않습니다.
+`src/lib/places.functions.ts` 신설.
 
-- `send.mutate` 직전에 내 메시지를 `messages` 상태에 push (옵티미스틱)
-- 응답 대기 동안 AI 말풍선 자리에 로딩 버블 렌더링
-  - 점이 `.` → `..` → `...` → `.` 순으로 순환하는 작은 컴포넌트 `TypingDots` 추가
-  - `setInterval` 400ms 주기로 상태(0/1/2) 토글, `send.isPending`일 때만 노출
-- `onSuccess`에서는 AI 응답만 append (내 메시지는 이미 들어있음)
-- `onError` 시 옵티미스틱 메시지 롤백 또는 에러 버블 표시
+- `listPlacesFn({ area })` — 공개 read-only 서버 함수. `requireSupabaseAuth` 사용하지 않음(공개 데이터). 핸들러 안에서 publishable 키 클라이언트를 만들어 SSR 안전하게 호출. 비공개 컬럼 없음.
+- DB row → `SeedPlace` 형태(camelCase)로 매핑해서 반환.
 
-## 3. AI 응답 도착 시 자동 스크롤 하단 이동
+### 3. 페이지 (`src/routes/places.tsx`)
 
-- 스크롤 컨테이너 `ref`를 활용해 다음 시점에 `scrollTop = scrollHeight` 실행:
-  - 메시지 추가 시 (`messages.length` 변화)
-  - 전송 직후(내 메시지 옵티미스틱 반영)
-  - AI 응답 도착(`send.isSuccess`) 후 — 분석 카드/제안 카드 렌더 완료 보장을 위해 `requestAnimationFrame` 1~2회 후 스크롤
-- `useEffect`로 처리, 매끄럽게 `behavior: "smooth"`
+- `placesSeed` JSON import 제거.
+- TanStack Query 패턴으로 전환:
+  - `placesQueryOptions(area)` 정의 → 라우트 `loader`에서 `ensureQueryData`, 컴포넌트에서 `useSuspenseQuery`.
+  - `area` 변경 시 새 쿼리키로 자동 refetch.
+- 필터·정렬·지도 마커 로직은 그대로 유지(메모리 내).
+- `errorComponent` / `notFoundComponent` 추가(현재 누락된 경우 함께 보강).
 
-## 기술 메모
+### 4. 정리
 
-- 새 컴포넌트: `TypingDots`(파일 내 로컬), `messagesRef`(HTMLDivElement)
-- 추가 의존성 없음
-- `PhoneShell hideNav`는 유지(키보드/입력창과 하단 nav 중복 방지)
-- 모드 전환 시에도 스크롤 맨 아래로 이동
+- `src/data/places.json` 삭제.
+- `DatePlace` 타입에 `area`, `mood` 옵션 필드 정식 포함(이미 `SeedPlace` 확장으로 쓰던 것 흡수).
+
+## 기술 노트
+
+- `id`를 text로 유지하는 이유: 기존 데이터의 `sd-1`, `hn-1` 패턴을 시드 후에도 사람이 읽고 관리하기 쉬움. 신규 추가도 자유 문자열 가능.
+- 공개 데이터라 `anon` SELECT를 명시적으로 허용 — 다른 user-owned 테이블과 정책 결이 다름을 RLS 정책 코멘트에 기록.
+- 글쓰기 권한은 정책 없음 = 차단. 운영자 추가/수정은 추후 어드민 화면 또는 마이그레이션·`supabase--insert` 도구로 진행. (어드민 화면이 필요하면 별도 작업으로 분리)
+- 이미지 매핑(`CATEGORY_IMAGES`)은 카테고리 기반 폴백이라 코드에 그대로 유지. 장소별 실사 이미지 URL을 DB에 넣고 싶다면 후속 작업으로 `image_url` 컬럼 추가.
+
+## 영향 범위
+
+- 변경: `src/routes/places.tsx`, `src/lib/api.ts`(타입), 새 마이그레이션, 새 `src/lib/places.functions.ts`.
+- 삭제: `src/data/places.json`.
+- 다른 라우트/기능에는 영향 없음.
