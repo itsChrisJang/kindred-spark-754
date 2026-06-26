@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Heart, Shield } from "lucide-react";
 import { useEffect } from "react";
 import { PhoneShell } from "@/components/PhoneShell";
 import { lovable } from "@/integrations/lovable/index";
@@ -43,25 +42,12 @@ function Login() {
     <PhoneShell hideNav>
       <div className="flex min-h-dvh flex-col justify-between px-6 pt-12 pb-10">
         <div>
-          <div className="brand-gradient mb-6 flex h-16 w-16 items-center justify-center rounded-3xl shadow-lg">
-            <Heart size={30} fill="white" className="text-white" />
-          </div>
           <h1 className="text-[26px] font-bold leading-tight">
             소개팅,<br />조금 더 잘 준비해볼까요?
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-text-2">
             사진, 대화, 장소까지 — 만남 전부터 차분히 챙겨드릴게요.
           </p>
-
-          <div className="mt-6 flex items-start gap-2 rounded-2xl border border-border bg-secondary p-3.5">
-            <Shield size={16} className="mt-0.5 flex-shrink-0 text-purple" />
-            <div className="text-[12px] leading-relaxed text-text-2">
-              <span className="font-semibold text-foreground">
-                구글 계정으로 안전하게 로그인하세요.
-              </span>{" "}
-              개인정보는 암호화되어 보호되며, 본인만 접근할 수 있습니다.
-            </div>
-          </div>
         </div>
 
         <div className="pt-6">

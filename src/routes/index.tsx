@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Bell, MapPin } from "lucide-react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type Post, type PostSite } from "@/lib/api";
@@ -27,13 +27,35 @@ export const SITE_META: Record<PostSite, { label: string; color: string; bg: str
 
 const SITES: PostSite[] = ["SOLO_OFF", "LOVEMATCHING", "MISEOL", "MODPARTY", "ORANGES", "YEONIN"];
 
+const PAGE_SIZE = 5;
+
 function Home() {
   const [activeSite, setActiveSite] = useState<PostSite | undefined>(undefined);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
     queryKey: ["posts", activeSite],
-    queryFn: () => api.listPosts(activeSite ? { site: activeSite } : undefined),
+    queryFn: ({ pageParam }) =>
+      api.listPosts({ site: activeSite, page: pageParam as number, limit: PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined,
   });
+
+  const posts = data?.pages.flat() ?? [];
+
+  useEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <PhoneShell>
@@ -75,7 +97,10 @@ function Home() {
         <div className="space-y-3 px-4">
           {posts.map((p) => <PostCard key={p.id} post={p} />)}
         </div>
-        <div className="h-6" />
+        <div ref={bottomRef} className="flex h-12 items-center justify-center">
+          {isFetchingNextPage && <span className="text-sm text-text-3">불러오는 중…</span>}
+          {!hasNextPage && posts.length > 0 && <span className="text-xs text-text-3">마지막이에요</span>}
+        </div>
       </div>
     </PhoneShell>
   );

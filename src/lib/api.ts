@@ -223,8 +223,8 @@ async function myJoinedIds(): Promise<Set<string>> {
 // ── API ──────────────────────────────────────────────────
 export const api = {
   // Posts (Supabase) ------------------------------------
-  async listPosts(filter?: { site?: PostSite; region?: string; page?: number }): Promise<Post[]> {
-    const limit = 50;
+  async listPosts(filter?: { site?: PostSite; region?: string; page?: number; limit?: number }): Promise<Post[]> {
+    const limit = filter?.limit ?? 50;
     const offset = ((filter?.page ?? 1) - 1) * limit;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (supabase as any).from("post").select("*").range(offset, offset + limit - 1);
