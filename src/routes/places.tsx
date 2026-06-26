@@ -16,13 +16,18 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
 import { type DatePlace } from "@/lib/api";
-import placesSeed from "@/data/places.json";
+import { listPlacesFn, type SeedPlace } from "@/lib/places.functions";
 
-type SeedPlace = DatePlace & { area: string; mood?: string };
-const SEED = placesSeed as SeedPlace[];
+const placesQueryOptions = (area: string) =>
+  queryOptions({
+    queryKey: ["date_places", area],
+    queryFn: () => listPlacesFn({ data: { area } }),
+    staleTime: 60_000,
+  });
 
 export const Route = createFileRoute("/places")({
   head: () => ({
@@ -31,8 +36,23 @@ export const Route = createFileRoute("/places")({
       { name: "description", content: "동네, 분위기, 예산에 맞는 데이트 장소를 골라보세요." },
     ],
   }),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(placesQueryOptions("성수동")),
+  errorComponent: ({ error }) => (
+    <PhoneShell>
+      <NavHeader back title="데이트 장소" />
+      <div className="p-6 text-sm text-text-2">불러오기 실패: {error.message}</div>
+    </PhoneShell>
+  ),
+  notFoundComponent: () => (
+    <PhoneShell>
+      <NavHeader back title="데이트 장소" />
+      <div className="p-6 text-sm text-text-2">장소가 없어요.</div>
+    </PhoneShell>
+  ),
   component: Places,
 });
+
 
 const CATEGORIES = [
   { value: "전체", icon: Sparkles },
