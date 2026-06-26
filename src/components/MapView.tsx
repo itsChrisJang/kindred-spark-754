@@ -136,8 +136,9 @@ export function MapView({
       if (p.label) {
         const iw = new kakao.maps.InfoWindow({
           position: new kakao.maps.LatLng(p.lat, p.lng),
-          content: `<div style="padding:3px 6px;font-size:10px;">${p.label}</div>`,
+          content: `<div style="padding:3px 6px;font-size:10px;">${escapeHtml(p.label)}</div>`,
         });
+
         iw.open(map, marker);
         markersRef.current.push({ setMap: () => iw.close() });
       }
