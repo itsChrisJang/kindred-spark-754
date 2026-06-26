@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
+function escapeHtml(s: string): string {
+  return String(s).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string
+  ));
+}
+
+
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
