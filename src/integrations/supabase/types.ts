@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      date_places: {
+        Row: {
+          address: string
+          area: string
+          category: string
+          created_at: string
+          id: string
+          image_query: string | null
+          is_after: boolean
+          lat: number
+          lng: number
+          menu_examples: string[]
+          mood: string | null
+          name: string
+          price_range: string | null
+          rating: number
+          reason: string | null
+          review_count: number
+          sort_weight: number
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          area: string
+          category: string
+          created_at?: string
+          id: string
+          image_query?: string | null
+          is_after?: boolean
+          lat: number
+          lng: number
+          menu_examples?: string[]
+          mood?: string | null
+          name: string
+          price_range?: string | null
+          rating?: number
+          reason?: string | null
+          review_count?: number
+          sort_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          area?: string
+          category?: string
+          created_at?: string
+          id?: string
+          image_query?: string | null
+          is_after?: boolean
+          lat?: number
+          lng?: number
+          menu_examples?: string[]
+          mood?: string | null
+          name?: string
+          price_range?: string | null
+          rating?: number
+          reason?: string | null
+          review_count?: number
+          sort_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meeting_participants: {
         Row: {
           gender: Database["public"]["Enums"]["gender"]
