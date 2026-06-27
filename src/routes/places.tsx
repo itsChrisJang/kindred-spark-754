@@ -134,7 +134,7 @@ function Places() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [areaOpen, setAreaOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [sheetState, setSheetState] = useState<"collapsed" | "expanded">("collapsed");
+  const [sheetState, setSheetState] = useState<"collapsed" | "peek" | "expanded">("collapsed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -192,10 +192,10 @@ function Places() {
     };
   }, [sheetState]);
 
-  // 마커 클릭 → 시트 확장 + 해당 장소 단독 표시
+  // 마커 클릭 → 시트 peek(=절반) + 해당 장소 단독 표시
   const handlePinClick = (id: string) => {
     setSelectedId(id);
-    setSheetState("expanded");
+    setSheetState("peek");
     setVisibleCount(PAGE_SIZE);
   };
 
@@ -221,7 +221,18 @@ function Places() {
     ? { lat: selectedPlace.lat, lng: selectedPlace.lng }
     : AREA_COORDS[area] ?? AREA_COORDS["성수동"];
 
-  const pins = sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name }));
+  // peek 상태에서 시트가 지도 하단 ~42% 가리므로 마커가 화면 위쪽으로 올라오도록 보정
+  const centerOffsetY = selectedPlace && sheetState === "peek" ? 130 : 0;
+
+  // 선택 시: 해당 마커만, 비선택 시: 전체 sorted
+  const pins = useMemo(
+    () =>
+      selectedPlace
+        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name }]
+        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name })),
+    [selectedPlace, sorted],
+  );
+
 
   // 헤더 + 필터바 실제 높이 → CSS 변수로 노출 (지도 높이 계산용)
   const headerRef = useRef<HTMLDivElement | null>(null);
@@ -344,6 +355,7 @@ function Places() {
           lat={center.lat}
           lng={center.lng}
           zoom={selectedPlace ? 3 : 5}
+          centerOffsetY={centerOffsetY}
           pins={pins}
           onPinClick={handlePinClick}
         />
@@ -374,7 +386,12 @@ function Places() {
         {/* 바텀시트 */}
         <SheetOverlay
           state={sheetState}
-          onToggle={() => setSheetState((s) => (s === "expanded" ? "collapsed" : "expanded"))}
+          onToggle={() =>
+            setSheetState((s) => {
+              if (s === "expanded") return selectedPlace ? "peek" : "collapsed";
+              return "expanded";
+            })
+          }
           selectedPlace={selectedPlace}
           onClearSelection={() => setSelectedId(null)}
           totalCount={listData.length}
@@ -442,7 +459,7 @@ function SheetOverlay({
   setSortOpen,
   children,
 }: {
-  state: "collapsed" | "expanded";
+  state: "collapsed" | "peek" | "expanded";
   onToggle: () => void;
   selectedPlace: SeedPlace | null;
   onClearSelection: () => void;
@@ -453,9 +470,8 @@ function SheetOverlay({
   setSortOpen: (v: boolean) => void;
   children: React.ReactNode;
 }) {
-  // collapsed: 지도 영역의 ~15%만 차지 (헤더만 보임)
-  // expanded: 90% 차지 (지도 위 10% 남김)
-  const heightPct = state === "expanded" ? 90 : 15;
+  // collapsed: ~15% (헤더만), peek: ~42% (선택 장소 카드 보임), expanded: ~90%
+  const heightPct = state === "expanded" ? 90 : state === "peek" ? 42 : 15;
   return (
     <div
       className="absolute inset-x-0 bottom-0 z-20 flex flex-col overflow-hidden rounded-t-3xl bg-surface shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.18)] transition-[height] duration-300 ease-out"
