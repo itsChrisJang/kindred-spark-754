@@ -174,40 +174,50 @@ function Home() {
             />
           </label>
 
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setOpenOnly(!openOnly)}
-              className={`flex h-10 items-center justify-between rounded-xl px-3 text-left transition-colors ${
-                openOnly ? "bg-pink-light text-pink" : "bg-secondary text-foreground"
-              }`}
-            >
-              <span>
-                <span className="block text-[10px] font-semibold text-text-3">상태</span>
-                <span className="block text-[13px] font-bold">
-                  {openOnly ? "모집중만" : "전체 상태"}
-                </span>
-              </span>
-              <span className={`h-2 w-2 rounded-full ${openOnly ? "bg-pink" : "bg-text-3"}`} />
-            </button>
-            <FilterSelect
-              label="지역"
-              value={region}
-              onChange={setRegion}
-              options={regions.map((value) => ({
-                value,
-                label: value === ALL ? "전체" : value,
-              }))}
-            />
-            <FilterSelect
-              label="정렬"
-              value={sortMode}
-              onChange={(value) => setSortMode(value as SortMode)}
-              options={[
-                { value: "fresh", label: "최신순" },
-                { value: "price-low", label: "낮은 가격순" },
-              ]}
-            />
+          <div className="mt-3 space-y-2">
+            <div className="inline-flex h-9 w-full items-center rounded-full bg-secondary p-0.5 text-[12px] font-bold">
+              <button
+                type="button"
+                onClick={() => setOpenOnly(true)}
+                className={`flex h-full flex-1 items-center justify-center gap-1 rounded-full transition-all ${
+                  openOnly ? "bg-pink text-white shadow-sm" : "text-text-3"
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${openOnly ? "bg-white" : "bg-pink"}`} />
+                모집중
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpenOnly(false)}
+                className={`flex h-full flex-1 items-center justify-center rounded-full transition-all ${
+                  !openOnly ? "bg-foreground text-white shadow-sm" : "text-text-3"
+                }`}
+              >
+                전체보기
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <FilterSelect
+                label="지역"
+                icon={<MapPin size={13} className="text-pink" />}
+                value={region}
+                onChange={setRegion}
+                options={regions.map((value) => ({
+                  value,
+                  label: value === ALL ? "전체 지역" : value,
+                }))}
+              />
+              <FilterSelect
+                label="정렬"
+                icon={<SlidersHorizontal size={13} className="text-pink" />}
+                value={sortMode}
+                onChange={(value) => setSortMode(value as SortMode)}
+                options={[
+                  { value: "fresh", label: "최신순" },
+                  { value: "price-low", label: "낮은 가격순" },
+                ]}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -296,15 +306,18 @@ function FilterSelect({
   value,
   options,
   onChange,
+  icon,
 }: {
   label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  icon?: ReactNode;
 }) {
   return (
-    <label className="relative flex h-10 items-center justify-between rounded-xl bg-secondary px-3">
-      <span className="min-w-0">
+    <label className="relative flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3">
+      {icon}
+      <span className="min-w-0 flex-1">
         <span className="block text-[10px] font-semibold text-text-3">{label}</span>
         <span className="block truncate text-[13px] font-bold text-foreground">
           {options.find((option) => option.value === value)?.label ?? "전체"}
@@ -322,7 +335,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <span className="ml-2 text-xs font-black text-text-3">⌄</span>
+      <span className="text-xs font-black text-text-3">⌄</span>
     </label>
   );
 }
