@@ -179,7 +179,7 @@ export function MapView({
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
 
       const el = document.createElement("div");
-      el.innerHTML = pinHtml(false);
+      el.innerHTML = pinHtml(!!p.selected);
       el.style.cursor = "pointer";
       el.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -191,7 +191,7 @@ export function MapView({
         content: el,
         yAnchor: 1,
         xAnchor: 0.5,
-        zIndex: 3,
+        zIndex: p.selected ? 10 : 3,
         clickable: true,
       });
       overlay.setMap(map);
