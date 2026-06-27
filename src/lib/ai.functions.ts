@@ -32,8 +32,10 @@ export const analyzePhotoFn = createServerFn({ method: "POST" })
   .inputValidator((input: { imageDataUrl: string }) => {
     if (!input?.imageDataUrl?.startsWith("data:image/"))
       throw new Error("올바른 이미지가 필요합니다");
-    if (input.imageDataUrl.length > 8 * 1024 * 1024)
-      throw new Error("이미지 크기가 너무 큽니다 (8MB 이하)");
+    // base64 data URL 길이는 원본 바이트의 약 4/3배 → 원본 12MB ≈ 16MB.
+    // 요즘 폰 고화질 원본도 통과하도록 한도를 잡는다(데모 안전판).
+    if (input.imageDataUrl.length > 16 * 1024 * 1024)
+      throw new Error("이미지 크기가 너무 큽니다 (12MB 이하)");
     return input;
   })
   .handler(async ({ data }): Promise<PhotoAnalysisResult> => {
