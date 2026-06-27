@@ -459,7 +459,7 @@ function SheetOverlay({
   setSortOpen,
   children,
 }: {
-  state: "collapsed" | "expanded";
+  state: "collapsed" | "peek" | "expanded";
   onToggle: () => void;
   selectedPlace: SeedPlace | null;
   onClearSelection: () => void;
@@ -470,9 +470,8 @@ function SheetOverlay({
   setSortOpen: (v: boolean) => void;
   children: React.ReactNode;
 }) {
-  // collapsed: 지도 영역의 ~15%만 차지 (헤더만 보임)
-  // expanded: 90% 차지 (지도 위 10% 남김)
-  const heightPct = state === "expanded" ? 90 : 15;
+  // collapsed: ~15% (헤더만), peek: ~42% (선택 장소 카드 보임), expanded: ~90%
+  const heightPct = state === "expanded" ? 90 : state === "peek" ? 42 : 15;
   return (
     <div
       className="absolute inset-x-0 bottom-0 z-20 flex flex-col overflow-hidden rounded-t-3xl bg-surface shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.18)] transition-[height] duration-300 ease-out"
