@@ -422,30 +422,39 @@ function Profile() {
 
           <div className="mt-2 border-t border-border pt-3">
             <div className="mb-2 text-[12px] text-text-3">직접 추가</div>
-            <div className="flex items-center gap-2 rounded-full border border-dashed border-pink/60 px-3 py-1.5">
-              <input
-                value={customHobby}
-                onChange={(e) => setCustomHobby(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter") return;
-                  // 한글 IME 조합 중 Enter는 무시 (중복 추가 방지)
-                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-                  e.preventDefault();
-                  addCustomHobby();
-                }}
-                maxLength={12}
-                placeholder="태그를 입력하고 추가하세요"
-                className="flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-text-3"
-              />
-              <button
-                type="button"
-                onClick={addCustomHobby}
-                disabled={!customHobby.trim() || hobbies.length >= MAX_HOBBIES}
-                className="text-sm font-semibold text-pink disabled:opacity-40"
-              >
-                + 추가
-              </button>
-            </div>
+            {(() => {
+              const reachedMax = hobbies.length >= MAX_HOBBIES;
+              return (
+                <div
+                  className={`flex items-center gap-2 rounded-full border border-dashed px-3 py-1.5 ${
+                    reachedMax ? "border-border bg-bg-2 opacity-60" : "border-pink/60"
+                  }`}
+                >
+                  <input
+                    value={customHobby}
+                    onChange={(e) => setCustomHobby(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                      e.preventDefault();
+                      addCustomHobby();
+                    }}
+                    maxLength={12}
+                    disabled={reachedMax}
+                    placeholder={reachedMax ? `최대 ${MAX_HOBBIES}개까지 선택할 수 있어요` : "태그를 입력하고 추가하세요"}
+                    className="flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-text-3 disabled:cursor-not-allowed"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomHobby}
+                    disabled={reachedMax || !customHobby.trim()}
+                    className="text-sm font-semibold text-pink disabled:opacity-40"
+                  >
+                    + 추가
+                  </button>
+                </div>
+              );
+            })()}
             {customHobbies.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {customHobbies.map((h) => (
