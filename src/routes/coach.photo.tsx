@@ -229,9 +229,21 @@ function PhotoCoach() {
         }
         .result-rise { animation: result-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
         .bar-fill { transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes chat-pop {
+          from { opacity: 0; transform: translateY(7px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .chat-pop { animation: chat-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes typing-bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+          30%           { transform: translateY(-3px); opacity: 1; }
+        }
+        .typing-dot { animation: typing-bounce 1.15s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
           .result-rise { animation: none; }
           .bar-fill { transition: none; }
+          .chat-pop { animation: none; }
+          .typing-dot { animation: none; }
         }
       `}</style>
     </PhoneShell>
@@ -321,46 +333,17 @@ function Result({ data }: { data: PhotoAnalysis }) {
         </div>
       </Section>
 
-      {/* 사진 정보 — 배지 모음 (색은 칩으로만) */}
-      <Section label="사진 정보" delay={60}>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className={`tag-base ${suitabilityClass(data.suitability)}`}>
-            {suitabilityLabel(data.suitability)}
-          </span>
-          <span className="tag-base bg-secondary text-text-2">
-            {photoTypeLabel(data.photoType)}
-          </span>
-          <span className="tag-base bg-secondary text-text-2">
-            시선 {gazeLabel(data.gazeDirection)}
-          </span>
-          <span className="tag-base bg-secondary text-text-2">
-            구도 {framingLabel(data.framing)}
-          </span>
-          <span
-            className={`tag-base ${data.isAiGenerated ? "bg-rose-100 text-rose-600" : "bg-green-100 text-green-700"}`}
-          >
-            {data.isAiGenerated ? "AI 생성 의심" : "실사 사진"}
-          </span>
-        </div>
-      </Section>
-
-      {/* 코멘트 — 스타일·적합도 설명 (동일 sub-label 체계) */}
-      <Section label="코멘트" delay={120}>
-        <div className="space-y-3">
-          <div>
-            <div className="mb-1 text-[11px] font-semibold text-text-3">스타일</div>
-            <p className="text-sm leading-relaxed text-text-2">{data.styleComment}</p>
-          </div>
-          <div className="border-t border-border pt-3">
-            <div className="mb-1 text-[11px] font-semibold text-text-3">적합도</div>
-            <p className="text-sm leading-relaxed text-text-2">{data.suitabilityReason}</p>
-          </div>
-        </div>
+      {/* 코멘트 — AI 코치가 메신저처럼 한 메시지씩 보내는 형태 */}
+      <Section label="코멘트" delay={60}>
+        <CoachChat
+          key={data.styleComment}
+          messages={[data.styleComment, data.suitabilityReason].filter(Boolean)}
+        />
       </Section>
 
       {/* 개선 포인트 — 중립 카드 + 색 도트(좋음=green / 개선=amber). 빈 배열이면 섹션 숨김 */}
       {data.tips.length > 0 && (
-        <Section label="개선 포인트" delay={180} padded={false}>
+        <Section label="개선 포인트" delay={120} padded={false}>
           <div className="divide-y divide-border">
             {data.tips.map((t, idx) => {
               const good = t.type === "good";
@@ -436,38 +419,70 @@ function ScoreRow({
   );
 }
 
-function gazeLabel(g: PhotoAnalysis["gazeDirection"]) {
-  return g === "camera" ? "정면" : g === "side" ? "측면" : "회피";
+// ── AI 코치 채팅: 메시지를 타이핑 인디케이터와 함께 한 개씩 순차 등장 ──
+function CoachChat({ messages }: { messages: string[] }) {
+  const reduce = prefersReducedMotion();
+  const [shown, setShown] = useState(reduce ? messages.length : 0);
+  const [typing, setTyping] = useState(!reduce && messages.length > 0);
+
+  useEffect(() => {
+    if (reduce) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let t = 250;
+    messages.forEach((_, i) => {
+      timers.push(setTimeout(() => setTyping(true), t));
+      t += 750; // 타이핑 인디케이터 노출 시간
+      timers.push(
+        setTimeout(() => {
+          setShown(i + 1);
+          setTyping(false);
+        }, t),
+      );
+      t += 400; // 다음 메시지까지 간격
+    });
+    return () => timers.forEach(clearTimeout);
+    // 메시지 묶음이 바뀌면 key로 리마운트되므로 마운트 시 한 번만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple text-white">
+          <Sparkles size={14} />
+        </span>
+        <span className="text-[13px] font-semibold text-text-2">AI 코치</span>
+      </div>
+      <div className="space-y-2">
+        {messages.slice(0, shown).map((m, i) => (
+          <ChatBubble key={i} text={m} />
+        ))}
+        {typing && <TypingBubble />}
+      </div>
+    </div>
+  );
 }
-function framingLabel(f: PhotoAnalysis["framing"]) {
-  return f === "closeup"
-    ? "클로즈업"
-    : f === "bust"
-      ? "상반신"
-      : f === "fullbody"
-        ? "전신"
-        : "와이드";
+
+function ChatBubble({ text }: { text: string }) {
+  return (
+    <div className="chat-pop max-w-[88%] rounded-2xl rounded-tl-md bg-secondary px-3.5 py-2.5 text-sm leading-relaxed text-foreground">
+      {text}
+    </div>
+  );
 }
-function photoTypeLabel(t: PhotoAnalysis["photoType"]) {
-  return t === "selfie"
-    ? "셀카"
-    : t === "portrait"
-      ? "인물 사진"
-      : t === "fullbody"
-        ? "전신 컷"
-        : t === "group"
-          ? "단체 사진"
-          : "풍경 위주";
-}
-function suitabilityLabel(s: PhotoAnalysis["suitability"]) {
-  return s === "main" ? "메인 추천" : s === "sub" ? "서브로 적합" : "교체 권장";
-}
-function suitabilityClass(s: PhotoAnalysis["suitability"]) {
-  return s === "main"
-    ? "bg-green-100 text-green-700"
-    : s === "sub"
-      ? "bg-amber-100 text-amber-700"
-      : "bg-rose-100 text-rose-600";
+
+function TypingBubble() {
+  return (
+    <div className="chat-pop flex w-fit items-center gap-1 rounded-2xl rounded-tl-md bg-secondary px-3.5 py-3">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="typing-dot h-1.5 w-1.5 rounded-full bg-text-3"
+          style={{ animationDelay: `${i * 150}ms` }}
+        />
+      ))}
+    </div>
+  );
 }
 
 function ScanOverlay() {
