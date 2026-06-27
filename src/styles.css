@@ -214,3 +214,31 @@
 .solo-float-1   { --rot: -15deg; --peak-opacity: 0.75; animation: solo-float 2.4s ease-in-out infinite; }
 .solo-float-2   { --rot:  20deg; --peak-opacity: 0.65; animation: solo-float 2.4s ease-in-out infinite; animation-delay: 0.8s; }
 .solo-float-3   { --rot:   8deg; --peak-opacity: 0.60; animation: solo-float 2.4s ease-in-out infinite; animation-delay: 1.6s; }
+
+@utility input {
+  @apply w-full rounded-xl border border-border bg-secondary px-3.5 py-2.5 text-sm text-text-1 outline-none focus:border-pink;
+}
+
+.range-thumb {
+  pointer-events: none;
+}
+.range-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-pink, hsl(340 82% 52%));
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  cursor: pointer;
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 22px; height: 22px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-pink, hsl(340 82% 52%));
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  cursor: pointer;
+}
