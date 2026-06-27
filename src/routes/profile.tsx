@@ -357,7 +357,7 @@ function Profile() {
       </div>
 
       {/* Fixed 저장 버튼 */}
-      <div className="absolute inset-x-0 bottom-0 z-10 border-t border-border bg-white/95 px-4 py-3 backdrop-blur">
+      <div className="absolute inset-x-0 bottom-[68px] z-10 border-t border-border bg-white/95 px-4 py-3 backdrop-blur">
         <button
           onClick={() => save.mutate()}
           disabled={!nickname || areas.length === 0 || save.isPending}
