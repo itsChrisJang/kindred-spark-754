@@ -317,7 +317,6 @@ export const api = {
     const offset = ((filter?.page ?? 1) - 1) * limit;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (supabase as any).from("post").select("*")
-      .order("sort_priority", { ascending: true })
       .order("crawled_at", { ascending: false })
       .range(offset, offset + limit - 1);
     if (filter?.site) q = q.eq("site", filter.site);
