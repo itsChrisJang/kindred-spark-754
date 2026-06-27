@@ -114,7 +114,11 @@ export const listPlacesFn = createServerFn({ method: "GET" })
       .order("sort_weight", { ascending: false })
       .order("review_count", { ascending: false });
 
-    if (data.area) query = query.eq("area", data.area);
+    if (data.area) {
+      // DB에 "성수"/"성수동" 같이 두 형태가 섞여 있어 양쪽 모두 매칭
+      const base = data.area.replace(/동$/, "");
+      query = query.in("area", [base, `${base}동`]);
+    }
 
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
