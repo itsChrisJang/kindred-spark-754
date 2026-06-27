@@ -170,19 +170,29 @@ export function MapView({
     if (!kakao?.maps || !map) return;
 
     const pos = new kakao.maps.LatLng(lat, lng);
-    const marker = new kakao.maps.Marker({ position: pos, map });
-    let iw: any;
+    const pin = new kakao.maps.CustomOverlay({
+      position: pos,
+      content: PIN_HTML_ACTIVE,
+      yAnchor: 1,
+      xAnchor: 0.5,
+      clickable: false,
+    });
+    pin.setMap(map);
+
+    let balloon: any;
     if (label) {
-      iw = new kakao.maps.InfoWindow({
+      balloon = new kakao.maps.CustomOverlay({
         position: pos,
         content: `<div style="${BALLOON_STYLE}">${escapeHtml(label)}</div>`,
-        removable: false,
+        yAnchor: 2.6,
+        xAnchor: 0.5,
+        clickable: false,
       });
-      iw.open(map, marker);
+      balloon.setMap(map);
     }
     return () => {
-      marker.setMap(null);
-      iw?.close();
+      pin.setMap(null);
+      balloon?.setMap(null);
     };
   }, [ready, hasPins, lat, lng, label]);
 
@@ -198,25 +208,40 @@ export function MapView({
     markersRef.current = [];
 
     if (!pins || pins.length === 0) return;
+    const isSingle = pins.length === 1;
 
     pins.forEach((p) => {
       const pos = new kakao.maps.LatLng(p.lat, p.lng);
-      const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
-      markersRef.current.push(marker);
-
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
-      kakao.maps.event.addListener(marker, "click", () => {
+
+      // 핀 (커스텀 SVG)
+      const pinEl = document.createElement("div");
+      pinEl.innerHTML = isSingle ? PIN_HTML_ACTIVE : PIN_HTML;
+      pinEl.style.cursor = "pointer";
+      pinEl.addEventListener("click", () => {
         onPinClickRef.current?.(handlerId);
       });
 
-      if (p.label) {
-        const iw = new kakao.maps.InfoWindow({
+      const pin = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: pinEl,
+        yAnchor: 1,
+        xAnchor: 0.5,
+        clickable: true,
+      });
+      pin.setMap(map);
+      markersRef.current.push(pin);
+
+      if (p.label && isSingle) {
+        const balloon = new kakao.maps.CustomOverlay({
           position: pos,
           content: `<div style="${BALLOON_STYLE}">${escapeHtml(p.label)}</div>`,
-          removable: false,
+          yAnchor: 2.4,
+          xAnchor: 0.5,
+          clickable: false,
         });
-        iw.open(map, marker);
-        markersRef.current.push({ setMap: () => iw.close() });
+        balloon.setMap(map);
+        markersRef.current.push(balloon);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
