@@ -84,8 +84,10 @@ function pinHtml(selected = false, kind: PinKind = "기본"): string {
   const shadow = selected
     ? "drop-shadow(0 6px 12px rgba(0,0,0,0.28))"
     : "drop-shadow(0 4px 8px rgba(0,0,0,0.2))";
-  return `<div style="transform:translate(-50%,-100%);cursor:pointer;filter:${shadow};">
-    <svg width="${w}" height="${h}" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+  // CustomOverlay의 xAnchor/yAnchor가 위치 보정을 담당하므로 transform 사용 금지
+  // (translate를 추가로 적용하면 zoom-out 시 마커가 점점 밀리는 현상이 발생함)
+  return `<div style="width:${w}px;height:${h}px;cursor:pointer;filter:${shadow};line-height:0;">
+    <svg width="${w}" height="${h}" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg" style="display:block;">
       <path d="M14 1.5C7.1 1.5 1.5 7.1 1.5 14c0 8.4 10.3 19.1 11.5 20.3.55.55 1.45.55 2 0C16.2 33.1 26.5 22.4 26.5 14 26.5 7.1 20.9 1.5 14 1.5Z" fill="${fill}" stroke="#fff" stroke-width="2"/>
       ${style.icon}
     </svg>
