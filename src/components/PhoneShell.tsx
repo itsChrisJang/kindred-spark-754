@@ -25,7 +25,7 @@ function BottomNav() {
     );
   };
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex min-h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
       {item("/", Home, "홈")}
       {item("/places", Search, "장소")}
       <Link
