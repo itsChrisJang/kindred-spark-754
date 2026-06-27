@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Mic, Send, Sparkles } from "lucide-react";
+import { Mic, MicOff, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type ChatPracticeReply } from "@/lib/api";
@@ -33,6 +33,8 @@ function ChatPractice() {
     { role: "ai", text: "안녕하세요! 지금부터 소개팅 자기소개를 연습해볼게요. 먼저 30초 자기소개를 해보세요 😊" },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
+  const [isListening, setIsListening] = useState(false);
 
   const scrollToBottom = (smooth = true) => {
     requestAnimationFrame(() => {
@@ -73,6 +75,37 @@ function ChatPractice() {
     setMessages((m) => [...m, { role: "me", text }]);
     setInput("");
     send.mutate(text);
+  }
+
+  function toggleVoice() {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      alert("이 브라우저는 음성 입력을 지원하지 않아요.");
+      return;
+    }
+    const recognition = new SR() as InstanceType<typeof window.SpeechRecognition>;
+    recognition.lang = "ko-KR";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (e: any) => {
+      const transcript = Array.from(e.results as SpeechRecognitionResultList)
+        .map((r) => (r as SpeechRecognitionResult)[0].transcript)
+        .join("");
+      setInput(transcript);
+    };
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
   }
 
   function switchMode(next: Mode) {
@@ -224,12 +257,15 @@ function ChatPractice() {
             className="flex-1 rounded-full bg-secondary px-4 py-2.5 text-sm outline-none"
           />
           <button
-            type="submit"
+            type={input.trim() ? "submit" : "button"}
+            onClick={!input.trim() ? toggleVoice : undefined}
             disabled={send.isPending}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-pink text-white disabled:opacity-50"
-            aria-label={input.trim() ? "보내기" : "음성 입력"}
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white transition-colors disabled:opacity-50 ${
+              isListening ? "animate-pulse bg-red-500" : "bg-pink"
+            }`}
+            aria-label={input.trim() ? "보내기" : isListening ? "음성 입력 중지" : "음성 입력"}
           >
-            {input.trim() ? <Send size={16} /> : <Mic size={18} />}
+            {input.trim() ? <Send size={16} /> : isListening ? <MicOff size={18} /> : <Mic size={18} />}
           </button>
         </form>
       </div>
