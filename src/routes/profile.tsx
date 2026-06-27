@@ -345,25 +345,7 @@ function Profile() {
             </Field>
           </div>
 
-          {/* 로테이션 옵션 */}
-          <div className="mt-5 border-t border-border pt-4">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-pink/15 text-pink">
-                <Check size={14} strokeWidth={3} />
-              </span>
-              <h3 className="text-[14px] font-semibold text-pink">로테이션 옵션</h3>
-            </div>
-            <Toggle
-              label="같은 회사 사람 제외"
-              checked={excludeCompany}
-              onChange={setExcludeCompany}
-            />
-            <Toggle
-              label="이전에 만난 사람 재매칭"
-              checked={rematch}
-              onChange={setRematch}
-            />
-          </div>
+
         </Card>
 
         <div className="mt-2 text-center text-xs text-text-3">
