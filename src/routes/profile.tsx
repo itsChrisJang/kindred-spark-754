@@ -31,6 +31,14 @@ const INDUSTRIES = [
   "제조 · 엔지니어링", "공공 · 공무원", "전문직",
 ];
 
+const HOBBY_GROUPS: { label: string; items: string[] }[] = [
+  { label: "활동 · 취미", items: ["운동", "등산", "여행", "게임", "사진", "요리"] },
+  { label: "문화", items: ["영화", "음악", "공연", "독서", "전시"] },
+  { label: "음식 · 술", items: ["카페", "와인", "맛집", "맥주"] },
+  { label: "라이프스타일", items: ["반려동물", "자기계발", "패션"] },
+];
+const MAX_HOBBIES = 8;
+
 
 function Profile() {
   const qc = useQueryClient();
@@ -68,6 +76,8 @@ function Profile() {
   const [drinking, setDrinking] = useState("가끔");
   const [excludeCompany, setExcludeCompany] = useState(true);
   const [rematch, setRematch] = useState(false);
+  const [hobbies, setHobbies] = useState<string[]>([]);
+  const [customHobby, setCustomHobby] = useState("");
 
   useEffect(() => {
     if (!existing) return;
@@ -86,6 +96,7 @@ function Profile() {
     setDrinking(existing.drinking ?? "가끔");
     setExcludeCompany(existing.excludeSameCompany);
     setRematch(existing.rematchPrevious);
+    setHobbies(existing.hobbies ?? []);
   }, [existing]);
 
   // 내 나이 기준 ±N 적용
@@ -98,7 +109,7 @@ function Profile() {
     mutationFn: () => {
       const payload: Omit<UserProfile, "id" | "email"> = {
         nickname, age, gender, job, bio: existing?.bio ?? "",
-        hobbies: existing?.hobbies ?? [], photos: existing?.photos ?? [],
+        hobbies, photos: existing?.photos ?? [],
         preferredAgeMin: effectiveRange[0],
         preferredAgeMax: effectiveRange[1],
         useAgeWindow: useWindow,
@@ -120,6 +131,25 @@ function Profile() {
   function toggleArea(a: string) {
     setAreas((arr) => (arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]));
   }
+  function toggleHobby(h: string) {
+    setHobbies((arr) => {
+      if (arr.includes(h)) return arr.filter((x) => x !== h);
+      if (arr.length >= MAX_HOBBIES) return arr;
+      return [...arr, h];
+    });
+  }
+  function addCustomHobby() {
+    const v = customHobby.trim();
+    if (!v) return;
+    if (hobbies.includes(v) || hobbies.length >= MAX_HOBBIES) {
+      setCustomHobby("");
+      return;
+    }
+    setHobbies((arr) => [...arr, v]);
+    setCustomHobby("");
+  }
+  const presetHobbySet = new Set(HOBBY_GROUPS.flatMap((g) => g.items));
+  const customHobbies = hobbies.filter((h) => !presetHobbySet.has(h));
   async function logout() {
     await api.signOut();
     location.href = "/login";
@@ -348,6 +378,97 @@ function Profile() {
 
 
         </Card>
+
+        {/* 관심사 · 취미 */}
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-pink/15 text-pink">
+                <Check size={14} strokeWidth={3} />
+              </span>
+              <h2 className="text-[15px] font-bold text-pink">관심사 · 취미</h2>
+            </div>
+            <span className="text-[11px] text-text-3">
+              {hobbies.length} / {MAX_HOBBIES}
+            </span>
+          </div>
+
+          {HOBBY_GROUPS.map((group) => (
+            <div key={group.label} className="mb-4">
+              <div className="mb-2 text-[12px] text-text-3">{group.label}</div>
+              <div className="flex flex-wrap gap-2">
+                {group.items.map((item) => {
+                  const on = hobbies.includes(item);
+                  const disabled = !on && hobbies.length >= MAX_HOBBIES;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => toggleHobby(item)}
+                      className={`rounded-full px-4 py-1.5 text-sm transition ${
+                        on
+                          ? "bg-pink text-white"
+                          : "border border-border bg-white text-text-2"
+                      } ${disabled ? "opacity-40" : ""}`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          <div className="mt-2 border-t border-border pt-3">
+            <div className="mb-2 text-[12px] text-text-3">직접 추가</div>
+            <div className="flex flex-wrap items-center gap-2">
+              {customHobbies.map((h) => (
+                <span
+                  key={h}
+                  className="inline-flex items-center gap-1 rounded-full bg-pink px-3 py-1.5 text-sm text-white"
+                >
+                  {h}
+                  <button
+                    type="button"
+                    onClick={() => toggleHobby(h)}
+                    aria-label={`${h} 삭제`}
+                    className="flex h-4 w-4 items-center justify-center"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              <div className="flex items-center gap-1 rounded-full border border-dashed border-pink/60 px-2 py-1">
+                <input
+                  value={customHobby}
+                  onChange={(e) => setCustomHobby(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomHobby();
+                    }
+                  }}
+                  maxLength={12}
+                  placeholder="태그 입력"
+                  className="w-20 bg-transparent px-1 text-sm outline-none placeholder:text-text-3"
+                />
+                <button
+                  type="button"
+                  onClick={addCustomHobby}
+                  disabled={!customHobby.trim() || hobbies.length >= MAX_HOBBIES}
+                  className="text-sm font-semibold text-pink disabled:opacity-40"
+                >
+                  + 추가
+                </button>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-text-3">
+              직접 추가한 태그는 AI 대화 연습 소재로도 활용돼요
+            </p>
+          </div>
+        </Card>
+
 
         <div className="mt-2 text-center text-xs text-text-3">
           <Link to="/coach/photo" className="text-pink underline">
