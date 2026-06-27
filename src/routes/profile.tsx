@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Check } from "lucide-react";
+import { LogOut, Check, X, BadgeCheck, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
+
 import { api, type Gender, type UserProfile } from "@/lib/api";
 
 export const Route = createFileRoute("/profile")({
