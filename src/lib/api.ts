@@ -92,6 +92,18 @@ export interface UserProfile {
   job?: string;
   hobbies: string[];
   photos: string[];
+  preferredAgeMin: number;
+  preferredAgeMax: number;
+  useAgeWindow: boolean;
+  ageWindowN: number;
+  activeAreas: string[];
+  residence?: string;
+  heightSelf?: number;
+  heightPref?: string;
+  smoking?: string;
+  drinking?: string;
+  excludeSameCompany: boolean;
+  rematchPrevious: boolean;
 }
 
 export interface PhotoAnalysis {
@@ -320,34 +332,14 @@ export const api = {
   ): Promise<UserProfile> {
     const row = await saveProfileFn({ data: input });
     const { data: { user } } = await supabase.auth.getUser();
-    return {
-      id: row.user_id,
-      email: user?.email ?? "",
-      nickname: row.nickname,
-      age: row.age,
-      gender: row.gender,
-      job: row.job ?? undefined,
-      bio: row.bio,
-      hobbies: row.hobbies,
-      photos: row.photos,
-    };
+    return rowToProfile(row, user?.email ?? "");
   },
 
   async getMyProfile(): Promise<UserProfile | null> {
     const row = await getMyProfileFn();
     if (!row) return null;
     const { data: { user } } = await supabase.auth.getUser();
-    return {
-      id: row.user_id,
-      email: user?.email ?? "",
-      nickname: row.nickname,
-      age: row.age,
-      gender: row.gender,
-      job: row.job ?? undefined,
-      bio: row.bio,
-      hobbies: row.hobbies,
-      photos: row.photos,
-    };
+    return rowToProfile(row, user?.email ?? "");
   },
 
   // AI ---------------------------------------------------
