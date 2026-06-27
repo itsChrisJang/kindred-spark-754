@@ -138,8 +138,13 @@ export function MapView({
       const marker = new kakao.maps.Marker({
         position: new kakao.maps.LatLng(p.lat, p.lng),
         map,
+        clickable: true,
       });
       markersRef.current.push(marker);
+      if (onPinClick) {
+        const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
+        kakao.maps.event.addListener(marker, "click", () => onPinClick(handlerId));
+      }
       if (p.label) {
         const iw = new kakao.maps.InfoWindow({
           position: new kakao.maps.LatLng(p.lat, p.lng),
@@ -150,7 +155,13 @@ export function MapView({
         markersRef.current.push({ setMap: () => iw.close() });
       }
     });
-  }, [lat, lng, label, pins]);
+  }, [lat, lng, label, pins, onPinClick]);
+
+  const wrapperBase = fill
+    ? "relative h-full w-full bg-secondary"
+    : "relative overflow-hidden rounded-2xl border border-border bg-secondary";
+  const wrapperStyle = fill ? { width: "100%", height: "100%" } : { height, width: "100%" };
+
 
   // 키 미설정 또는 SDK 로드 실패 시 OpenStreetMap 정적 이미지로 대체 (마커 포함)
   if (!KAKAO_KEY || failed) {
