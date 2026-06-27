@@ -424,46 +424,96 @@ function PixelCharacter({
   );
 }
 
-// 결과 상단 히어로: 추천 색을 입은 캐릭터를 밝은 무대 위에 중앙 배치.
-// 무대는 라이트/다크 어디서나 외곽선 대비가 확보되도록 고정 라이트 톤을 쓴다.
+// 결과 상단 히어로: 하늘을 크게 열어두고 캐릭터 옷 색 충실도는 두 장치로 보호.
+// ① 소프트 radial glow — 캐릭터 실루엣 뒤에 경계 없는 흰 빛이 배경색을 밀어내
+//    어두운 비 하늘(#46566B)에서도 슬롯 색이 분리돼 읽힌다.
+// ② 타원 무대 바닥 — 발치 아래에만 밝은 타원이 위로 fade, 캐릭터를 바닥에 안착.
+// 큰 흰 패널 없이 하늘/날씨 FX가 시원하게 드러나고, 라벨·레전드는
+// 각각 반투명 pill 형태로 어느 날씨에서나 독립적 대비 확보.
 function LookHero({
   gender,
   items,
+  weather,
 }: {
   gender: "M" | "F";
   items: { category: string; description: string; color: string }[];
+  weather: WeatherId;
 }) {
   const { palette, legend } = buildLook(items);
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border shadow-card"
-      style={{ background: "linear-gradient(168deg, #FFF2F6 0%, #FDF6FA 46%, #FFFFFF 100%)" }}
-    >
-      {/* 은은한 코너 광원으로 무대 느낌만 살짝 */}
+    <div className="relative overflow-hidden rounded-2xl border border-border shadow-card">
+      {/* 하늘 레이어 — 날씨 전환 시 crossfade (입력존과 동일 패턴) */}
+      {WEATHERS.map((w) => (
+        <div
+          key={w.id}
+          aria-hidden
+          className="absolute inset-0 transition-opacity duration-500 ease-out"
+          style={{ background: w.sky, opacity: weather === w.id ? 1 : 0 }}
+        />
+      ))}
+
+      {/* 날씨 FX — 입력존보다 절제된 강도(45%)로 배경 분위기만 살짝 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full opacity-60"
-        style={{ background: "radial-gradient(circle, rgba(255,75,123,0.16), transparent 70%)" }}
-      />
-      <div className="relative flex flex-col items-center px-4 pt-4 pb-4">
-        <div className="mb-2 inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide text-pink">
+        className="pointer-events-none absolute inset-0"
+        style={{ opacity: 0.45 }}
+      >
+        <WeatherFX weather={weather} />
+      </div>
+
+      {/* 컨텐츠 레이어 */}
+      <div className="relative flex flex-col items-center px-4 pt-4 pb-5">
+        {/* 라벨 — 반투명 pill로 어느 하늘에서나 핑크+대비 유지 */}
+        <div
+          className="mb-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-pink backdrop-blur-sm"
+          style={{ background: "rgba(255,255,255,0.72)" }}
+        >
           <Sparkles size={12} />
           추천 룩 미리보기
         </div>
-        <div className="flex flex-col items-center">
-          <PixelCharacter gender={gender} palette={palette} cell={6} />
-          {/* 발밑 그림자로 캐릭터를 무대에 안착 */}
-          <div className="mt-[-3px] h-2 w-24 rounded-[50%] bg-black/[0.12] blur-[3px]" />
+
+        {/* 캐릭터 + 소프트 후광 */}
+        <div className="relative">
+          {/* Radial glow — 경계 없는 흰 빛이 옷 슬롯 색을 하늘에서 분리 */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute"
+            style={{
+              inset: "-36px -44px",
+              zIndex: 0,
+              background:
+                "radial-gradient(ellipse at 50% 46%, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.30) 44%, rgba(255,255,255,0.08) 65%, transparent 80%)",
+            }}
+          />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <PixelCharacter gender={gender} palette={palette} cell={6} />
+          </div>
         </div>
+
+        {/* 타원 무대 바닥 — 발치만 밝고 위로 갈수록 fade(기존 foot shadow 대체) */}
+        <div
+          aria-hidden
+          style={{
+            width: "168px",
+            height: "24px",
+            marginTop: "-4px",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.36) 52%, transparent 78%)",
+          }}
+        />
+
+        {/* 레전드 — 하늘 위에 뜨는 반투명 pill 칩 */}
         {legend.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             {legend.map((l) => (
               <span
                 key={l.slot}
-                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-2"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm backdrop-blur-sm"
+                style={{ background: "rgba(255,255,255,0.76)" }}
               >
                 <span
-                  className="h-3 w-3 rounded-full ring-1 ring-black/10"
+                  className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10"
                   style={{ background: l.hex }}
                 />
                 {l.label}
@@ -597,7 +647,7 @@ function LookCoach() {
             {rec.isPending ? (
               <LookSkeleton />
             ) : rec.data ? (
-              <Result data={rec.data} gender={gender} />
+              <Result data={rec.data} gender={gender} weather={weather} />
             ) : (
               !rec.isError && <LookHint />
             )}
@@ -840,11 +890,19 @@ function LookSkeleton() {
   );
 }
 
-function Result({ data, gender }: { data: LookRecommendation; gender: "M" | "F" }) {
+function Result({
+  data,
+  gender,
+  weather,
+}: {
+  data: LookRecommendation;
+  gender: "M" | "F";
+  weather: WeatherId;
+}) {
   return (
     <div className="space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300 motion-safe:ease-out">
       {/* 추천 색을 입은 미니멀 도트 캐릭터 — 결과 상단 히어로 */}
-      {data.items.length > 0 && <LookHero gender={gender} items={data.items} />}
+      {data.items.length > 0 && <LookHero gender={gender} items={data.items} weather={weather} />}
 
       {/* 룩 소개: 결과의 메인 헤더 */}
       <div className="rounded-2xl border border-border bg-surface p-4">
