@@ -117,7 +117,7 @@ function PhotoCoach() {
 
   return (
     <PhoneShell>
-      <NavHeader back title="AI 사진 코칭" />
+      <NavHeader back backTo="/coach" title="AI 사진 코칭" />
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
@@ -166,7 +166,7 @@ function PhotoCoach() {
               </div>
               <div className="text-center">
                 <div className="text-[15px] font-semibold text-foreground">탭해서 사진 업로드</div>
-                <div className="mt-1 text-xs text-text-3">JPG · PNG · 5MB 이하 권장</div>
+                <div className="mt-1 text-xs text-text-2">JPG · PNG · 5MB 이하 권장</div>
               </div>
             </button>
           )}

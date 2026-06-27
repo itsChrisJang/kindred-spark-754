@@ -76,7 +76,7 @@ function CoachHub() {
               </div>
               <div className="flex-1">
                 <div className="text-[16px] font-semibold">{title}</div>
-                <div className="mt-1 text-[12px] leading-relaxed text-text-3">{desc}</div>
+                <div className="mt-1 text-[12px] leading-relaxed text-text-2">{desc}</div>
               </div>
               <span className="text-lg text-text-3">›</span>
             </Link>

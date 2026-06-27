@@ -94,7 +94,7 @@ function ChatPractice() {
     <PhoneShell hideNav>
       {/* Fixed top header */}
       <div className="fixed inset-x-0 top-0 z-20 mx-auto w-full max-w-[420px] bg-surface">
-        <NavHeader back title="대화 연습" />
+        <NavHeader back backTo="/coach" title="대화 연습" />
         <div className="px-4 pb-3">
           <div className="flex gap-2">
             {MODES.map((m) => (

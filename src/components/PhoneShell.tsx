@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Sparkles, User, Bookmark } from "lucide-react";
+import { Home, Search, Sparkles, User, Bookmark, ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function PhoneShell({ children, hideNav }: { children: ReactNode; hideNav?: boolean }) {
@@ -47,11 +47,14 @@ function BottomNav() {
 export function NavHeader({
   title,
   back,
+  backTo,
   right,
   subtitle,
 }: {
   title?: string;
   back?: boolean;
+  /** 뒤로가기 목적지. 미지정 시 홈("/"). 2-depth 페이지는 상위 허브 경로를 넘긴다. */
+  backTo?: string;
   right?: ReactNode;
   subtitle?: string;
 }) {
@@ -60,11 +63,11 @@ export function NavHeader({
       <div className="flex w-10 items-center justify-start">
         {back && (
           <Link
-            to="/"
+            to={backTo ?? "/"}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground"
             aria-label="뒤로"
           >
-            ←
+            <ChevronLeft size={18} />
           </Link>
         )}
       </div>
