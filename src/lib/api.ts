@@ -316,20 +316,15 @@ export const api = {
     const limit = filter?.limit ?? 50;
     const offset = ((filter?.page ?? 1) - 1) * limit;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let q = (supabase as any).from("post").select("*").range(offset, offset + limit - 1);
+    let q = (supabase as any).from("post").select("*")
+      .order("sort_priority", { ascending: true })
+      .order("crawled_at", { ascending: false })
+      .range(offset, offset + limit - 1);
     if (filter?.site) q = q.eq("site", filter.site);
     if (filter?.region) q = q.or(`region.ilike.%${filter.region}%,region_group.ilike.%${filter.region}%`);
     const { data, error } = await q;
     if (error) throw new Error(error.message);
-    const rows: PostRow[] = data ?? [];
-    return rows
-      .sort((a, b) => {
-        const sa = (a.image_url ? 1 : 0) + (a.price ? 1 : 0);
-        const sb = (b.image_url ? 1 : 0) + (b.price ? 1 : 0);
-        if (sb !== sa) return sb - sa;
-        return new Date(b.crawled_at).getTime() - new Date(a.crawled_at).getTime();
-      })
-      .map(rowToPost);
+    return (data ?? [] as PostRow[]).map(rowToPost);
   },
 
   async getPost(id: string): Promise<Post> {

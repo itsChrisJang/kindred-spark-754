@@ -86,7 +86,7 @@ function Home() {
         const bIsSoloOff = b.site === "SOLO_OFF" ? 1 : 0;
         if (aIsSoloOff !== bIsSoloOff) return aIsSoloOff - bIsSoloOff;
         if (sortMode === "price-low") return priceOf(a) - priceOf(b);
-        return new Date(b.crawledAt).getTime() - new Date(a.crawledAt).getTime();
+        return 0; // DB order (sort_priority ASC, crawled_at DESC) 유지
       });
   }, [debouncedQuery, openOnly, posts, region, sortMode]);
 
