@@ -194,8 +194,11 @@ function Places() {
 
   // 마커 클릭 → 시트 peek(=절반) + 해당 장소 단독 표시
   const handlePinClick = (id: string) => {
-    setSelectedId(id);
-    setSheetState("peek");
+    setSelectedId((prev) => {
+      if (prev === id) return null; // 같은 마커 재클릭 → 선택 해제
+      return id;
+    });
+    setSheetState((prev) => (selectedId === id ? "collapsed" : "peek"));
     setVisibleCount(PAGE_SIZE);
   };
 
@@ -232,10 +235,15 @@ function Places() {
   };
   const pins = useMemo(
     () =>
-      selectedPlace
-        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name, sublabel: pinSub(selectedPlace) }]
-        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name, sublabel: pinSub(p) })),
-    [selectedPlace, sorted],
+      sorted.map((p) => ({
+        id: p.id,
+        lat: p.lat,
+        lng: p.lng,
+        label: p.name,
+        sublabel: pinSub(p),
+        selected: selectedId === p.id,
+      })),
+    [selectedId, sorted],
   );
 
 
