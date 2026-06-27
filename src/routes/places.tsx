@@ -462,11 +462,14 @@ function SheetOverlay({
       style={{ height: `${heightPct}%` }}
     >
       {/* 헤더 (탭하면 토글) */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
-        className="flex flex-shrink-0 flex-col items-stretch gap-1.5 px-4 pb-2 pt-2 text-left"
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); } }}
+        className="flex flex-shrink-0 cursor-pointer flex-col items-stretch gap-1.5 px-4 pb-2 pt-2 text-left"
       >
+
         <div className="mx-auto h-1 w-10 rounded-full bg-border" />
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold">
@@ -529,7 +532,8 @@ function SheetOverlay({
             </div>
           )}
         </div>
-      </button>
+      </div>
+
 
       {/* 본문 */}
       <div className="min-h-0 flex-1">{children}</div>
