@@ -14,12 +14,12 @@ import {
   ArrowUpDown,
   Check,
   RotateCcw,
+  Phone,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
-import { type DatePlace } from "@/lib/api";
 import { listPlacesFn, type SeedPlace } from "@/lib/places.functions";
 
 const placesQueryOptions = (area: string) =>
