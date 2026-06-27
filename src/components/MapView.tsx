@@ -143,16 +143,17 @@ export function MapView({
     const marker = new kakao.maps.Marker({ position: pos, map });
     let iw: any;
     if (label) {
-      iw = new kakao.maps.InfoWindow({
+      iw = new kakao.maps.CustomOverlay({
         position: pos,
         content: `<div style="${BALLOON_STYLE}">${escapeHtml(label)}</div>`,
-        removable: false,
+        yAnchor: 1,
+        xAnchor: 0.5,
       });
-      iw.open(map, marker);
+      iw.setMap(map);
     }
     return () => {
       marker.setMap(null);
-      iw?.close();
+      iw?.setMap(null);
     };
   }, [ready, hasPins, lat, lng, label]);
 
