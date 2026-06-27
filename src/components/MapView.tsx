@@ -109,7 +109,7 @@ export function MapView({
   /** 카카오맵 level (1=가장 가까움, 14=가장 멈). 기본 4 (≈ OSM zoom 15). */
   zoom?: number;
   height?: number;
-  pins?: { id?: string; lat: number; lng: number; label?: string; sublabel?: string; selected?: boolean }[];
+  pins?: { id?: string; lat: number; lng: number; label?: string; sublabel?: string; selected?: boolean; kind?: PinKind }[];
   label?: string;
   /** true면 부모 컨테이너를 100%로 채움 */
   fill?: boolean;
