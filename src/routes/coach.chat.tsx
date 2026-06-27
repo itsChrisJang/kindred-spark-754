@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Send, Sparkles } from "lucide-react";
+import { Lock, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type ChatPracticeReply } from "@/lib/api";
+
+const FREE_LIMIT = 5;
 
 export const Route = createFileRoute("/coach/chat")({
   head: () => ({
@@ -32,6 +34,7 @@ function ChatPractice() {
   const [messages, setMessages] = useState<Msg[]>([
     { role: "ai", text: "안녕하세요! 지금부터 소개팅 자기소개를 연습해볼게요. 먼저 30초 자기소개를 해보세요 😊" },
   ]);
+  const [showPaywall, setShowPaywall] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
@@ -68,6 +71,11 @@ function ChatPractice() {
     e.preventDefault();
     const text = input.trim();
     if (!text || send.isPending) return;
+    const sentCount = messages.filter((m) => m.role === "me").length;
+    if (sentCount >= FREE_LIMIT) {
+      setShowPaywall(true);
+      return;
+    }
     setMessages((m) => [...m, { role: "me", text }]);
     setInput("");
     send.mutate(text);
@@ -82,6 +90,7 @@ function ChatPractice() {
     };
     setMessages([{ role: "ai", text: intro[next] }]);
     setInput("");
+    setShowPaywall(false);
   }
 
   useEffect(() => {
@@ -231,6 +240,40 @@ function ChatPractice() {
           </button>
         </form>
       </div>
+      {showPaywall && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-[420px] rounded-t-3xl bg-surface px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-6">
+            <div className="mb-3 flex justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple">
+                <Lock size={24} className="text-white" />
+              </div>
+            </div>
+            <h2 className="mb-2 text-center text-lg font-bold text-foreground">
+              무제한 연습 시작하기
+            </h2>
+            <p className="mb-6 text-center text-sm leading-relaxed text-text-2">
+              무료 체험 {FREE_LIMIT}회를 모두 사용했어요.
+              <br />
+              프리미엄으로 업그레이드하면
+              <br />
+              무제한으로 대화 연습을 할 수 있어요.
+            </p>
+            <button
+              type="button"
+              className="mb-3 block w-full rounded-2xl bg-pink py-3.5 text-center text-sm font-bold text-white"
+            >
+              프리미엄 시작하기
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPaywall(false)}
+              className="block w-full py-2 text-center text-sm text-text-3"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </PhoneShell>
   );
 }
