@@ -46,7 +46,7 @@ const ITEMS = [
 function CoachHub() {
   return (
     <PhoneShell>
-      <div className="scroll-area bg-pink-light">
+      <div className="scroll-area bg-white">
         <div className="px-5 pt-8 pb-5">
           <div className="text-xs font-medium text-pink">소개팅 준비</div>
           <h1 className="mt-1 text-2xl font-bold leading-tight text-foreground">
