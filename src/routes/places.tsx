@@ -192,10 +192,10 @@ function Places() {
     };
   }, [sheetState]);
 
-  // 마커 클릭 → 시트 확장 + 해당 장소 단독 표시
+  // 마커 클릭 → 시트 peek(=절반) + 해당 장소 단독 표시
   const handlePinClick = (id: string) => {
     setSelectedId(id);
-    setSheetState("expanded");
+    setSheetState("peek");
     setVisibleCount(PAGE_SIZE);
   };
 
@@ -221,7 +221,18 @@ function Places() {
     ? { lat: selectedPlace.lat, lng: selectedPlace.lng }
     : AREA_COORDS[area] ?? AREA_COORDS["성수동"];
 
-  const pins = sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name }));
+  // peek 상태에서 시트가 지도 하단 ~42% 가리므로 마커가 화면 위쪽으로 올라오도록 보정
+  const centerOffsetY = selectedPlace && sheetState === "peek" ? 130 : 0;
+
+  // 선택 시: 해당 마커만, 비선택 시: 전체 sorted
+  const pins = useMemo(
+    () =>
+      selectedPlace
+        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name }]
+        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name })),
+    [selectedPlace, sorted],
+  );
+
 
   // 헤더 + 필터바 실제 높이 → CSS 변수로 노출 (지도 높이 계산용)
   const headerRef = useRef<HTMLDivElement | null>(null);
