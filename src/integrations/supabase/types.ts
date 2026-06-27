@@ -274,39 +274,75 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_areas: string[]
           age: number
+          age_window_n: number
           bio: string
           created_at: string
+          drinking: string | null
+          exclude_same_company: boolean
           gender: Database["public"]["Enums"]["gender"]
+          height_pref: string | null
+          height_self: number | null
           hobbies: string[]
           job: string | null
           nickname: string
           photos: string[]
+          preferred_age_max: number
+          preferred_age_min: number
+          rematch_previous: boolean
+          residence: string | null
+          smoking: string | null
           updated_at: string
+          use_age_window: boolean
           user_id: string
         }
         Insert: {
+          active_areas?: string[]
           age: number
+          age_window_n?: number
           bio?: string
           created_at?: string
+          drinking?: string | null
+          exclude_same_company?: boolean
           gender: Database["public"]["Enums"]["gender"]
+          height_pref?: string | null
+          height_self?: number | null
           hobbies?: string[]
           job?: string | null
           nickname: string
           photos?: string[]
+          preferred_age_max?: number
+          preferred_age_min?: number
+          rematch_previous?: boolean
+          residence?: string | null
+          smoking?: string | null
           updated_at?: string
+          use_age_window?: boolean
           user_id: string
         }
         Update: {
+          active_areas?: string[]
           age?: number
+          age_window_n?: number
           bio?: string
           created_at?: string
+          drinking?: string | null
+          exclude_same_company?: boolean
           gender?: Database["public"]["Enums"]["gender"]
+          height_pref?: string | null
+          height_self?: number | null
           hobbies?: string[]
           job?: string | null
           nickname?: string
           photos?: string[]
+          preferred_age_max?: number
+          preferred_age_min?: number
+          rematch_previous?: boolean
+          residence?: string | null
+          smoking?: string | null
           updated_at?: string
+          use_age_window?: boolean
           user_id?: string
         }
         Relationships: []

@@ -92,6 +92,18 @@ export interface UserProfile {
   job?: string;
   hobbies: string[];
   photos: string[];
+  preferredAgeMin: number;
+  preferredAgeMax: number;
+  useAgeWindow: boolean;
+  ageWindowN: number;
+  activeAreas: string[];
+  residence?: string;
+  heightSelf?: number;
+  heightPref?: string;
+  smoking?: string;
+  drinking?: string;
+  excludeSameCompany: boolean;
+  rematchPrevious: boolean;
 }
 
 export interface PhotoAnalysis {
@@ -320,34 +332,14 @@ export const api = {
   ): Promise<UserProfile> {
     const row = await saveProfileFn({ data: input });
     const { data: { user } } = await supabase.auth.getUser();
-    return {
-      id: row.user_id,
-      email: user?.email ?? "",
-      nickname: row.nickname,
-      age: row.age,
-      gender: row.gender,
-      job: row.job ?? undefined,
-      bio: row.bio,
-      hobbies: row.hobbies,
-      photos: row.photos,
-    };
+    return rowToProfile(row, user?.email ?? "");
   },
 
   async getMyProfile(): Promise<UserProfile | null> {
     const row = await getMyProfileFn();
     if (!row) return null;
     const { data: { user } } = await supabase.auth.getUser();
-    return {
-      id: row.user_id,
-      email: user?.email ?? "",
-      nickname: row.nickname,
-      age: row.age,
-      gender: row.gender,
-      job: row.job ?? undefined,
-      bio: row.bio,
-      hobbies: row.hobbies,
-      photos: row.photos,
-    };
+    return rowToProfile(row, user?.email ?? "");
   },
 
   // AI ---------------------------------------------------
@@ -372,3 +364,34 @@ export const api = {
     return recommendPlacesFn({ data: input });
   },
 };
+
+function rowToProfile(row: Record<string, unknown>, email: string): UserProfile {
+  const r = row as {
+    user_id: string; nickname: string; age: number; gender: Gender;
+    job: string | null; bio: string; hobbies: string[]; photos: string[];
+    preferred_age_min?: number; preferred_age_max?: number;
+    use_age_window?: boolean; age_window_n?: number;
+    active_areas?: string[]; residence?: string | null;
+    height_self?: number | null; height_pref?: string | null;
+    smoking?: string | null; drinking?: string | null;
+    exclude_same_company?: boolean; rematch_previous?: boolean;
+  };
+  return {
+    id: r.user_id, email,
+    nickname: r.nickname, age: r.age, gender: r.gender,
+    job: r.job ?? undefined, bio: r.bio,
+    hobbies: r.hobbies, photos: r.photos,
+    preferredAgeMin: r.preferred_age_min ?? 23,
+    preferredAgeMax: r.preferred_age_max ?? 30,
+    useAgeWindow: r.use_age_window ?? false,
+    ageWindowN: r.age_window_n ?? 5,
+    activeAreas: r.active_areas ?? [],
+    residence: r.residence ?? undefined,
+    heightSelf: r.height_self ?? undefined,
+    heightPref: r.height_pref ?? undefined,
+    smoking: r.smoking ?? undefined,
+    drinking: r.drinking ?? undefined,
+    excludeSameCompany: r.exclude_same_company ?? true,
+    rematchPrevious: r.rematch_previous ?? false,
+  };
+}
