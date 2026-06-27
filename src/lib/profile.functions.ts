@@ -29,7 +29,7 @@ export const saveProfileFn = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => ProfileInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const payload: Record<string, unknown> = {
+    const payload = {
       user_id: userId,
       nickname: data.nickname,
       age: data.age,
@@ -38,7 +38,7 @@ export const saveProfileFn = createServerFn({ method: "POST" })
       bio: data.bio,
       hobbies: data.hobbies,
       photos: data.photos,
-    };
+    } as Record<string, unknown>;
     if (data.preferredAgeMin !== undefined) payload.preferred_age_min = data.preferredAgeMin;
     if (data.preferredAgeMax !== undefined) payload.preferred_age_max = data.preferredAgeMax;
     if (data.useAgeWindow !== undefined) payload.use_age_window = data.useAgeWindow;
@@ -54,7 +54,7 @@ export const saveProfileFn = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabase
       .from("profiles")
-      .upsert(payload, { onConflict: "user_id" })
+      .upsert(payload as never, { onConflict: "user_id" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
