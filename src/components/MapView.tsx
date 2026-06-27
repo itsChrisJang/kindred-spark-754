@@ -42,21 +42,56 @@ function loadKakaoSdk(): Promise<any> {
   return sdkPromise;
 }
 
-function pinHtml(selected = false): string {
-  // 정방향 핑크 티어드롭 SVG (회전 없음 → 기울어 보이지 않음)
-  const w = selected ? 34 : 28;
-  const h = selected ? 44 : 36;
+type PinKind = "카페" | "레스토랑" | "와인바" | "액티비티" | "기본";
+
+const KIND_STYLE: Record<PinKind, { fill: string; fillSel: string; icon: string }> = {
+  // 갈색 톤 + 커피잔
+  카페: {
+    fill: "#8B5A3C",
+    fillSel: "#6B3F26",
+    icon: `<path d="M9 10h8a2 2 0 0 1 2 2v2a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3v-2a2 2 0 0 1 2-2Z" fill="#fff"/><path d="M19 11h1.2a1.8 1.8 0 0 1 0 3.6H19" stroke="#fff" stroke-width="1.4" fill="none"/>`,
+  },
+  // 오렌지 톤 + 포크/나이프
+  레스토랑: {
+    fill: "#F2733B",
+    fillSel: "#D9521A",
+    icon: `<path d="M11 8v6m0 0a1.8 1.8 0 0 0 1.8 1.8h.4A1.8 1.8 0 0 0 15 14V8m-4 0v3.5a1 1 0 0 0 1 1m4-4.5v3.5a1 1 0 0 1-1 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M18 8v8" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><path d="M18 8c-1 0-1.6 1-1.6 2.2 0 1 .6 1.8 1.6 1.8" stroke="#fff" stroke-width="1.4" fill="none"/>`,
+  },
+  // 자주빛 + 와인잔
+  와인바: {
+    fill: "#9B3A6E",
+    fillSel: "#7A2854",
+    icon: `<path d="M10 8h8l-.6 3.4A3.5 3.5 0 0 1 14 14.6 3.5 3.5 0 0 1 10.6 11.4L10 8Z" fill="#fff"/><path d="M14 14.6V17m-2 0h4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`,
+  },
+  // 청록 + 별/스파클
+  액티비티: {
+    fill: "#2BB6A6",
+    fillSel: "#1E8E81",
+    icon: `<path d="M14 8l1.3 2.7L18 12l-2.7 1.3L14 16l-1.3-2.7L10 12l2.7-1.3L14 8Z" fill="#fff"/>`,
+  },
+  기본: {
+    fill: "#FF4B7B",
+    fillSel: "#FF2E66",
+    icon: `<circle cx="14" cy="13.5" r="4.5" fill="#fff"/>`,
+  },
+};
+
+function pinHtml(selected = false, kind: PinKind = "기본"): string {
+  const w = selected ? 36 : 30;
+  const h = selected ? 46 : 38;
+  const style = KIND_STYLE[kind] ?? KIND_STYLE["기본"];
+  const fill = selected ? style.fillSel : style.fill;
   const shadow = selected
-    ? "drop-shadow(0 6px 12px rgba(255,75,123,0.45))"
-    : "drop-shadow(0 4px 8px rgba(255,75,123,0.3))";
-  const fill = selected ? "#FF2E66" : "#FF4B7B";
+    ? "drop-shadow(0 6px 12px rgba(0,0,0,0.28))"
+    : "drop-shadow(0 4px 8px rgba(0,0,0,0.2))";
   return `<div style="transform:translate(-50%,-100%);cursor:pointer;filter:${shadow};">
     <svg width="${w}" height="${h}" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
       <path d="M14 1.5C7.1 1.5 1.5 7.1 1.5 14c0 8.4 10.3 19.1 11.5 20.3.55.55 1.45.55 2 0C16.2 33.1 26.5 22.4 26.5 14 26.5 7.1 20.9 1.5 14 1.5Z" fill="${fill}" stroke="#fff" stroke-width="2"/>
-      <circle cx="14" cy="13.5" r="4.5" fill="#fff"/>
+      ${style.icon}
     </svg>
   </div>`;
 }
+
 
 export function MapView({
   lat,
@@ -74,7 +109,7 @@ export function MapView({
   /** 카카오맵 level (1=가장 가까움, 14=가장 멈). 기본 4 (≈ OSM zoom 15). */
   zoom?: number;
   height?: number;
-  pins?: { id?: string; lat: number; lng: number; label?: string; sublabel?: string; selected?: boolean }[];
+  pins?: { id?: string; lat: number; lng: number; label?: string; sublabel?: string; selected?: boolean; kind?: PinKind }[];
   label?: string;
   /** true면 부모 컨테이너를 100%로 채움 */
   fill?: boolean;
@@ -98,7 +133,7 @@ export function MapView({
   const pinsKey = useMemo(
     () =>
       (pins ?? [])
-        .map((p) => `${p.id ?? ""}@${p.lat.toFixed(6)},${p.lng.toFixed(6)}#${p.label ?? ""}${p.selected ? "*" : ""}`)
+        .map((p) => `${p.id ?? ""}@${p.lat.toFixed(6)},${p.lng.toFixed(6)}#${p.label ?? ""}:${p.kind ?? ""}${p.selected ? "*" : ""}`)
         .join("|"),
     [pins],
   );
@@ -179,7 +214,7 @@ export function MapView({
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
 
       const el = document.createElement("div");
-      el.innerHTML = pinHtml(!!p.selected);
+      el.innerHTML = pinHtml(!!p.selected, p.kind ?? "기본");
       el.style.cursor = "pointer";
       el.addEventListener("click", (e) => {
         e.stopPropagation();

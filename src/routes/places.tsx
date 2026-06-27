@@ -242,9 +242,13 @@ function Places() {
         label: p.name,
         sublabel: pinSub(p),
         selected: selectedId === p.id,
+        kind: (["카페", "레스토랑", "와인바", "액티비티"].includes(p.category)
+          ? p.category
+          : "기본") as "카페" | "레스토랑" | "와인바" | "액티비티" | "기본",
       })),
     [selectedId, sorted],
   );
+
 
 
   // 헤더 + 필터바 실제 높이 → CSS 변수로 노출 (지도 높이 계산용)
