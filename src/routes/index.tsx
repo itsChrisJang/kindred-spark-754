@@ -529,6 +529,7 @@ function readSavedPosts() {
       imageUrl: string | null;
       detailUrl: string | null;
       soldout: boolean;
+      location?: string | null;
     }[];
   } catch {
     return [];
@@ -554,6 +555,7 @@ function toggleSavedPost(post: Post) {
           imageUrl: post.imageUrl,
           detailUrl: post.detailUrl,
           soldout: post.soldout,
+          location: getPostLocation(post),
         },
         ...savedPosts,
       ];
