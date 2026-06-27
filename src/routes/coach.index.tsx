@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, MessageCircle, MapPin, Shirt, Sparkles } from "lucide-react";
+import { Camera, MessageCircle, MapPin, Shirt } from "lucide-react";
 import { PhoneShell } from "@/components/PhoneShell";
 
 export const Route = createFileRoute("/coach/")({
@@ -52,16 +52,6 @@ function CoachHub() {
           <h1 className="mt-1 text-2xl font-bold leading-tight text-foreground">
             만남 전, 무엇부터<br />함께 챙겨볼까요?
           </h1>
-        </div>
-
-        <div className="px-4">
-          <div className="brand-gradient mb-4 rounded-3xl p-6 text-white">
-            <Sparkles size={24} />
-            <div className="mt-2 text-xl font-bold leading-snug">
-              사진, 대화, 룩까지<br />하나씩 차근차근
-            </div>
-            <div className="mt-1 text-xs opacity-80">아래에서 원하는 항목을 골라주세요</div>
-          </div>
         </div>
 
         <div className="space-y-3 px-4 pb-6">
