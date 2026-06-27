@@ -612,7 +612,7 @@ function PlaceCard({ p }: { p: SeedPlace }) {
             href={routeHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-surface text-[13px] font-semibold text-text-1"
+            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-surface text-[13px] font-semibold text-foreground"
           >
             <MapPin size={14} className="text-pink" />
             길찾기
