@@ -194,8 +194,11 @@ function Places() {
 
   // 마커 클릭 → 시트 peek(=절반) + 해당 장소 단독 표시
   const handlePinClick = (id: string) => {
-    setSelectedId(id);
-    setSheetState("peek");
+    setSelectedId((prev) => {
+      if (prev === id) return null; // 같은 마커 재클릭 → 선택 해제
+      return id;
+    });
+    setSheetState((prev) => (selectedId === id ? "collapsed" : "peek"));
     setVisibleCount(PAGE_SIZE);
   };
 
