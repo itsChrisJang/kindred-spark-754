@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, Check, X, BadgeCheck, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -42,6 +42,7 @@ const MAX_HOBBIES = 8;
 
 function Profile() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [authed, setAuthed] = useState<boolean | null>(null);
   useEffect(() => {
     api.currentUser().then((u) => {
@@ -125,7 +126,10 @@ function Profile() {
       };
       return api.saveProfile(payload);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      navigate({ to: "/" });
+    },
   });
 
   function toggleArea(a: string) {
