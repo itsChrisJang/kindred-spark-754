@@ -225,11 +225,16 @@ function Places() {
   const centerOffsetY = selectedPlace && sheetState === "peek" ? 130 : 0;
 
   // 선택 시: 해당 마커만, 비선택 시: 전체 sorted
+  const pinSub = (p: SeedPlace) => {
+    const cat = (p.kakaoCategory?.split(">").pop()?.trim()) || p.category;
+    const rate = p.rating ? `★ ${p.rating.toFixed(1)}` : null;
+    return [cat, rate].filter(Boolean).join(" · ");
+  };
   const pins = useMemo(
     () =>
       selectedPlace
-        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name }]
-        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name })),
+        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name, sublabel: pinSub(selectedPlace) }]
+        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name, sublabel: pinSub(p) })),
     [selectedPlace, sorted],
   );
 
