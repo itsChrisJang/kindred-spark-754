@@ -169,7 +169,7 @@ function Profile() {
           </button>
         }
       />
-      <div className="scroll-area bg-pink-light/40 px-4 pt-3 pb-28">
+      <div className="scroll-area bg-white px-4 pt-3 pb-28">
         {/* 기본 정보 */}
         <Card>
           <SectionLabel>기본 정보</SectionLabel>
@@ -491,7 +491,7 @@ function Profile() {
       </div>
 
       {/* Fixed 저장 버튼 */}
-      <div className="absolute inset-x-0 bottom-[68px] z-10 bg-pink-light/40 px-4 py-3 backdrop-blur">
+      <div className="absolute inset-x-0 bottom-[68px] z-10 border-t border-border bg-white px-4 py-3">
         <button
           onClick={() => save.mutate()}
           disabled={!nickname || areas.length === 0 || save.isPending}
@@ -604,7 +604,7 @@ function JobModal({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
+    <div className="border-b border-border py-5 first:pt-1 last:border-b-0">
       {children}
     </div>
   );
