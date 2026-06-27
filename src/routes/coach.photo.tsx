@@ -137,7 +137,7 @@ function PhotoCoach() {
                 className="absolute inset-0 h-full w-full object-cover object-top"
               />
 
-              {analyze.isPending && <ScanOverlay />}
+              {analyze.isPending && <ScanOverlay src={preview} />}
 
               {analyze.data && (
                 <div className="z-10 w-full bg-gradient-to-t from-black/75 via-black/40 to-transparent p-4 pt-10">
@@ -565,41 +565,161 @@ function Feedback({ tips, delay }: { tips: PhotoAnalysis["tips"]; delay?: number
   );
 }
 
-function ScanOverlay() {
-  // 단계 순환 텍스트로 "무엇을 분석 중인지" 보여줘 대기 체감을 줄임
-  const stages = ["표정 분석 중", "밝기·배경 확인 중", "스타일 점검 중", "AI 생성 여부 판별 중"];
+function ScanOverlay({ src }: { src: string | null }) {
+  // 단계는 한 방향으로만 전진하고 마지막에서 멈춘다(루프 백 제거).
+  const stages = ["표정 살펴보는 중", "밝기·배경 확인 중", "스타일 점검 중", "AI 생성 판별 중"];
   const [idx, setIdx] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const lensRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
   useEffect(() => {
-    const t = setInterval(() => setIdx((v) => (v + 1) % stages.length), 950);
+    const t = setInterval(() => setIdx((v) => Math.min(v + 1, stages.length - 1)), 1000);
     return () => clearInterval(t);
   }, [stages.length]);
 
+  // 돋보기 렌즈가 정해진 포인트를 ease로 순회하며 각 지점에서 잠깐 멈춘다.
+  // 렌즈 안은 원본 사진을 그대로 확대(M배) → 진짜 돋보기처럼 보이게 함.
+  useEffect(() => {
+    const root = rootRef.current;
+    const lens = lensRef.current;
+    const img = imgRef.current;
+    if (!root || !lens || !img) return;
+
+    const M = 1.6;
+    let W = 0;
+    let H = 0;
+    let R = 0;
+    const apply = (cx: number, cy: number) => {
+      lens.style.transform = `translate3d(${cx - R}px, ${cy - R}px, 0)`;
+      img.style.left = `${-(cx - R)}px`;
+      img.style.top = `${-(cy - R)}px`;
+      img.style.transformOrigin = `${cx}px ${cy}px`;
+    };
+    const measure = () => {
+      W = root.clientWidth;
+      H = root.clientHeight;
+      const D = Math.round(Math.max(64, Math.min(92, W * 0.23)));
+      R = D / 2;
+      lens.style.width = `${D}px`;
+      lens.style.height = `${D}px`;
+      img.style.width = `${W}px`;
+      img.style.height = `${H}px`;
+      img.style.transform = `scale(${M})`;
+    };
+    measure();
+
+    if (prefersReducedMotion()) {
+      apply(W * 0.5, H * 0.45);
+      return;
+    }
+
+    // 끊김 없이 떠다니는 연속 경로(리사주 곡선). x·y 주기를 다르게 줘 멈춤 없이 부드럽게 순회.
+    const cx0 = 0.5;
+    const cy0 = 0.46;
+    const ampX = 0.17;
+    const ampY = 0.18;
+    const wX = (2 * Math.PI) / 5600;
+    const wY = (2 * Math.PI) / 7300;
+    let raf = 0;
+    let startTs = 0;
+    const tick = (ts: number) => {
+      if (!startTs) startTs = ts;
+      const t = ts - startTs;
+      const fx = cx0 + ampX * Math.sin(t * wX);
+      const fy = cy0 + ampY * Math.sin(t * wY + Math.PI / 3);
+      apply(fx * W, fy * H);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(root);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [src]);
+
   return (
-    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-3xl">
-      <div className="absolute inset-0 bg-black/25" />
+    <div
+      ref={rootRef}
+      className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-3xl"
+    >
+      {/* 사진은 은은하게만 가린다(과한 디밍 X) — 렌즈 안이 주인공 */}
+      <div className="absolute inset-0 bg-black/15 backdrop-blur-[2px]" />
+      {/* 하단 텍스트 가독성용 그라데이션 (결과 hero와 동일 언어) */}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
 
-      {/* diagonal sweeping light */}
+      {/* 돋보기: 손잡이 + 광학 렌즈 */}
+      <div ref={lensRef} className="absolute left-0 top-0" style={{ width: 88, height: 88 }}>
+        {/* 손잡이 — 금속 톤, 림에서 우하단으로 */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            left: "72%",
+            top: "72%",
+            width: "40%",
+            height: "8.5%",
+            transform: "rotate(45deg)",
+            transformOrigin: "left center",
+            background: "linear-gradient(to bottom, #e7e5e4, #a8a29e 55%, #78716c)",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
+          }}
+        />
+        {/* 렌즈 유리 — 금속 베젤(box-shadow 적층) + 핑크 글로우 */}
+        <div
+          className="absolute inset-0 overflow-hidden rounded-full"
+          style={{
+            boxShadow:
+              "inset 0 0 0 1px rgba(255,255,255,0.35), 0 0 0 1px rgba(0,0,0,0.22), 0 0 0 2px rgba(231,229,228,0.92), 0 0 0 2.5px rgba(0,0,0,0.16), 0 6px 16px rgba(0,0,0,0.4), 0 0 14px 1px rgba(255,75,123,0.18)",
+          }}
+        >
+          {src && (
+            <img
+              ref={imgRef}
+              src={src}
+              alt=""
+              className="absolute max-w-none object-cover object-top"
+            />
+          )}
+          {/* 유리 반사: 부드러운 면 + 가는 사선 streak */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(120% 90% at 30% 22%, rgba(255,255,255,0.42), rgba(255,255,255,0) 40%), radial-gradient(circle at 50% 118%, rgba(0,0,0,0.28), rgba(0,0,0,0) 48%)",
+            }}
+          />
+          <div
+            className="absolute -inset-x-2 top-[14%] h-[10%] -rotate-[18deg]"
+            style={{
+              background:
+                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* 하단: 단계 텍스트만 (pill·세그먼트 등 chrome 제거) */}
       <div
-        className="scan-sweep absolute -inset-1/2"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.18) 49%, rgba(255,182,205,0.55) 50%, rgba(255,255,255,0.18) 51%, transparent 58%)",
-          animation: "photo-scan-diag 2.6s linear infinite",
-        }}
-      />
-
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-white backdrop-blur">
-        <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-pink align-middle" />
-        {stages[idx]}
+        className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-1.5 text-[12px] font-medium text-white"
+        style={{ textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
+      >
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-pink" />
+        <span key={idx} className="scan-text">
+          {stages[idx]}
+        </span>
       </div>
 
       <style>{`
-        @keyframes photo-scan-diag {
-          0%   { transform: translate(-30%, -30%); }
-          100% { transform: translate(30%, 30%); }
+        @keyframes scan-text {
+          from { opacity: 0; transform: translateY(2px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
+        .scan-text { animation: scan-text 0.32s ease-out; }
         @media (prefers-reduced-motion: reduce) {
-          .scan-sweep { animation: none !important; opacity: 0.5; }
+          .scan-text { animation: none; }
         }
       `}</style>
     </div>
