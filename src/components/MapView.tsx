@@ -43,14 +43,18 @@ function loadKakaoSdk(): Promise<any> {
 }
 
 function pinHtml(selected = false): string {
-  // 핑크 톤 티어드롭 핀 (그라데이션 + 화이트 도트 + 그림자)
-  const scale = selected ? 1.15 : 1;
-  const ring = selected
-    ? "box-shadow:0 6px 16px rgba(255,75,123,0.45);"
-    : "box-shadow:0 4px 10px rgba(255,75,123,0.28);";
-  return `<div style="position:relative;width:28px;height:36px;transform:translate(-50%,-100%) scale(${scale});transform-origin:50% 100%;cursor:pointer;">
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#FF7AA2 0%,#FF4B7B 100%);border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);${ring}"></div>
-    <div style="position:absolute;left:50%;top:10px;width:9px;height:9px;background:#fff;border-radius:50%;transform:translateX(-50%);"></div>
+  // 정방향 핑크 티어드롭 SVG (회전 없음 → 기울어 보이지 않음)
+  const w = selected ? 34 : 28;
+  const h = selected ? 44 : 36;
+  const shadow = selected
+    ? "drop-shadow(0 6px 12px rgba(255,75,123,0.45))"
+    : "drop-shadow(0 4px 8px rgba(255,75,123,0.3))";
+  const fill = selected ? "#FF2E66" : "#FF4B7B";
+  return `<div style="transform:translate(-50%,-100%);cursor:pointer;filter:${shadow};">
+    <svg width="${w}" height="${h}" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 1.5C7.1 1.5 1.5 7.1 1.5 14c0 8.4 10.3 19.1 11.5 20.3.55.55 1.45.55 2 0C16.2 33.1 26.5 22.4 26.5 14 26.5 7.1 20.9 1.5 14 1.5Z" fill="${fill}" stroke="#fff" stroke-width="2"/>
+      <circle cx="14" cy="13.5" r="4.5" fill="#fff"/>
+    </svg>
   </div>`;
 }
 
