@@ -174,17 +174,6 @@ function PhotoCoach() {
             </button>
           )}
 
-          {analyze.data?.oneLiner && (
-            <div className="result-rise relative mt-3 overflow-hidden rounded-2xl bg-gradient-to-br from-pink/15 via-pink-light to-purple-light p-4 ring-1 ring-pink/20">
-              <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-pink">
-                <Sparkles size={14} /> AI 한 줄 평
-              </div>
-              <p className="text-[15px] font-semibold leading-snug text-foreground">
-                “{analyze.data.oneLiner}”
-              </p>
-            </div>
-          )}
-
           <input
             ref={inputRef}
             type="file"
@@ -325,10 +314,28 @@ function Result({ data }: { data: PhotoAnalysis }) {
 
   return (
     <div className="space-y-5 px-4 pb-6">
-      {/* 모든 결과 섹션이 동일 골격: [13px 라벨] + [중립 surface 카드]. 색은 카드 안에서만. */}
+      {/* AI 한 줄 평 — 결과의 헤드라인. 채움 대신 큰 장식 따옴표 + 큰 굵은 타이포로 강조 */}
+      {data.oneLiner && (
+        <section className="result-rise">
+          <div className="mb-2 flex items-center gap-1.5 px-0.5 text-[13px] font-semibold text-pink">
+            <Sparkles size={14} /> AI 한 줄 평
+          </div>
+          <div className="rounded-2xl border border-border bg-surface px-4 pb-4 pt-2">
+            <span
+              aria-hidden
+              className="block select-none font-serif text-5xl leading-none text-pink/25"
+            >
+              “
+            </span>
+            <p className="-mt-2 text-[18px] font-bold leading-snug text-foreground">
+              {data.oneLiner}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* 항목별 점수 — 풀폭 미터 패널 */}
-      <Section label="항목별 점수" padded={false}>
+      <Section label="항목별 점수" delay={60} padded={false}>
         <div className="divide-y divide-border">
           {scores.map((s, idx) => (
             <ScoreRow key={s.label} {...s} index={idx} />
@@ -336,8 +343,8 @@ function Result({ data }: { data: PhotoAnalysis }) {
         </div>
       </Section>
 
-      {/* 코멘트 — AI 코치가 메신저처럼 한 메시지씩 보내는 형태 */}
-      <Section label="코멘트" delay={60}>
+      {/* 코멘트 — AI 코치가 메신저처럼 한 메시지씩 (스타일·적합도) */}
+      <Section label="코멘트" delay={120}>
         <CoachChat
           key={data.styleComment}
           messages={[data.styleComment, data.suitabilityReason].filter(Boolean)}
@@ -345,7 +352,7 @@ function Result({ data }: { data: PhotoAnalysis }) {
       </Section>
 
       {/* 코치 피드백 — 잘된 점(확인) + 개선점(체크 가능한 할 일) */}
-      {data.tips.length > 0 && <Feedback key={data.oneLiner} tips={data.tips} delay={120} />}
+      {data.tips.length > 0 && <Feedback key={data.oneLiner} tips={data.tips} delay={180} />}
     </div>
   );
 }
