@@ -386,7 +386,12 @@ function Places() {
         {/* 바텀시트 */}
         <SheetOverlay
           state={sheetState}
-          onToggle={() => setSheetState((s) => (s === "expanded" ? "collapsed" : "expanded"))}
+          onToggle={() =>
+            setSheetState((s) => {
+              if (s === "expanded") return selectedPlace ? "peek" : "collapsed";
+              return "expanded";
+            })
+          }
           selectedPlace={selectedPlace}
           onClearSelection={() => setSelectedId(null)}
           totalCount={listData.length}
