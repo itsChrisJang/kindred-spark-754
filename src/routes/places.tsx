@@ -315,8 +315,12 @@ function Places() {
         </div>
       </div>
 
-      {/* 지도 영역 (flex-1, BottomNav 높이만큼 마진) */}
-      <div className="relative min-h-0 flex-1" style={{ marginBottom: 68 }}>
+      {/* 지도 영역 — 헤더/필터/BottomNav 제외한 전체 영역 채움 */}
+      <div
+        className="relative w-full"
+        style={{ height: "calc(100dvh - var(--places-header, 105px) - 68px)", minHeight: 360 }}
+      >
+
         <MapView
           fill
           lat={center.lat}
