@@ -151,7 +151,11 @@ export const listPlacesFn = createServerFn({ method: "GET" })
               update.kakao_review_count = detail.reviewCount;
             if (detail.title) update.kakao_title = detail.title;
           }
-          await supabaseAdmin.from("date_places").update(update).eq("id", r.id);
+          await supabaseAdmin
+            .from("date_places")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .update(update as any)
+            .eq("id", r.id);
           return { id: r.id, ...update };
         }),
       );
