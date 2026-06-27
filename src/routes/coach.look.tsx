@@ -313,6 +313,17 @@ const PX_FIXED = {
 // 해당 슬롯 추천이 없을 때의 중립 베이스 색(깨지지 않게, 옷처럼 보이게).
 const PX_NEUTRAL = { top: "#C9CDD4", bottom: "#9AA0A8", shoe: "#5E636B" };
 
+// vibe 소품 고정 팔레트. 추천 색(슬롯)과 무관하게 항상 동일 → 상의/하의/아우터/신발
+// 색 블록을 침범하지 않아 레전드 색 원과 캐릭터 슬롯 색 정합이 유지된다.
+const PX_PROP = {
+  cap: "#2E3344", // 스트릿 캡 크라운
+  capBrim: "#1F2433", // 캡 챙(살짝 어둡게)
+  shades: "#23252B", // 선글라스 바이저
+  shirt: "#EEF1F5", // 포멀 드레스 셔츠
+  tie: "#8E2F3E", // 포멀 넥타이
+  ribbon: "#EF6AA0", // 러블리 머리 리본
+};
+
 type SlotPalette = { top: string; bottom: string; shoe: string; outer: string | null };
 
 const SLOT_LABEL: Record<Slot, string> = {
@@ -383,29 +394,105 @@ function pixelColor(ch: string, palette: SlotPalette): string | null {
       return shade(palette.bottom);
     case "f":
       return shade(palette.shoe);
+    // vibe 소품(고정색) — 슬롯 색 블록 밖에서만 쓰여 색 정합에 영향 없음
+    case "C":
+      return PX_PROP.cap;
+    case "c":
+      return PX_PROP.capBrim;
+    case "G":
+      return PX_PROP.shades;
+    case "W":
+      return PX_PROP.shirt;
+    case "Y":
+      return PX_PROP.tie;
+    case "R":
+      return PX_PROP.ribbon;
     default:
       return null; // 빈 셀
   }
 }
 
-// 정적 SVG <rect> 그리드. shape-rendering=crispEdges로 anti-alias 없이 픽셀 또렷.
+// vibe(분위기) → 캐릭터 "모양" 변형 셀. 색은 절대 건드리지 않고(슬롯 색 정합 유지)
+// 베이스 매트릭스(M/F) 위에 헤어/넥라인/소품 부위의 셀만 덮어쓴다. 상의·하의·아우터·
+// 신발의 색 블록(T/K/B/F 본체)은 그대로라 레전드 색 원과 캐릭터 색이 항상 일치한다.
+// VIBES = ["캐주얼","스마트 캐주얼","포멀","스트릿","러블리"]. 매칭 실패 → default(스마트 캐주얼).
+type VibeCell = [row: number, col: number, ch: string];
+
+function vibeCells(gender: "M" | "F", vibe: string): VibeCell[] {
+  const F = gender === "F";
+  switch (vibe) {
+    case "캐주얼":
+      // 라운드넥 티셔츠: 카라 음영(t)을 상의색(T) 링으로 → 깔끔한 라운드넥, 소품 없음.
+      return F ? [[16, 8, "T"], [16, 15, "T"]] : [[16, 9, "T"], [16, 14, "T"]];
+
+    case "포멀": {
+      // 재킷 라펠(카라 음영 t 유지) + 드레스 셔츠(W) + 넥타이(Y) 한 점.
+      const shirt: VibeCell[] = [
+        [16, 10, "W"], [16, 11, "W"], [16, 12, "W"], [16, 13, "W"],
+        [17, 10, "W"], [17, 13, "W"],
+      ];
+      const tie: VibeCell[] = [
+        [17, 11, "Y"], [17, 12, "Y"], // 매듭
+        [18, 11, "Y"], [18, 12, "Y"], [19, 11, "Y"], [19, 12, "Y"], // 블레이드
+      ];
+      return [...shirt, ...tie];
+    }
+
+    case "스트릿": {
+      // 캡(크라운 C + 좌측 챙 c) + 선글라스 바이저(G) + 오버핏 하이넥(상의색 T로 목 덮음).
+      const cells: VibeCell[] = [];
+      for (let c = 7; c <= 16; c++) cells.push([3, c, "C"]);
+      for (let c = 6; c <= 17; c++) cells.push([4, c, "C"]);
+      cells.push([4, 2, "c"], [4, 3, "c"], [4, 4, "c"]); // 좌측 챙
+      for (let c = 7; c <= 16; c++) cells.push([9, c, "G"]); // 선글라스 바이저
+      const lo = F ? 8 : 9;
+      const hi = F ? 15 : 14;
+      for (let c = lo; c <= hi; c++) cells.push([16, c, "T"]); // 오버핏 하이넥(목까지 상의색)
+      return cells;
+    }
+
+    case "러블리": {
+      // 머리 리본(R) + 부드러운 스쿱 넥(카라 음영 t → 피부 S로 개방). F는 더 넓게.
+      const cells: VibeCell[] = [
+        [1, 10, "R"], [1, 11, "R"], [1, 12, "R"], [1, 13, "R"], // 리본 날개
+        [2, 11, "R"], [2, 12, "R"], // 매듭
+      ];
+      if (F) cells.push([16, 8, "S"], [16, 15, "S"]);
+      else cells.push([16, 9, "S"], [16, 14, "S"]);
+      return cells;
+    }
+
+    case "스마트 캐주얼":
+    default:
+      // 셔츠/니트 카라 힌트(t 유지) + 가슴 중앙 살짝 V 노치(개방형 카라). 기본/폴백.
+      return [[17, 11, "S"], [17, 12, "S"]];
+  }
+}
+
+// 정적 SVG <rect> 그리드. 베이스(M/F)에 vibe 변형 셀을 덮어쓴 뒤 그린다.
+// shape-rendering=crispEdges로 anti-alias 없이 픽셀 또렷. Math.random 미사용(SSR 안정).
 function PixelCharacter({
   gender,
   palette,
+  vibe,
   cell = 6,
 }: {
   gender: "M" | "F";
   palette: SlotPalette;
+  vibe: string;
   cell?: number;
 }) {
-  const matrix = gender === "F" ? PIXEL_F : PIXEL_M;
-  const cols = matrix[0].length;
-  const rows = matrix.length;
+  const base = gender === "F" ? PIXEL_F : PIXEL_M;
+  const grid = base.map((row) => row.split(""));
+  for (const [r, c, ch] of vibeCells(gender, vibe)) {
+    if (grid[r] && c >= 0 && c < grid[r].length) grid[r][c] = ch;
+  }
+  const cols = grid[0].length;
+  const rows = grid.length;
   const rects: React.ReactNode[] = [];
   for (let y = 0; y < rows; y++) {
-    const row = matrix[y];
-    for (let x = 0; x < row.length; x++) {
-      const fill = pixelColor(row[x], palette);
+    for (let x = 0; x < cols; x++) {
+      const fill = pixelColor(grid[y][x], palette);
       if (!fill) continue;
       rects.push(<rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={fill} />);
     }
@@ -417,7 +504,7 @@ function PixelCharacter({
       viewBox={`0 0 ${cols} ${rows}`}
       shapeRendering="crispEdges"
       role="img"
-      aria-label={`${gender === "F" ? "여성" : "남성"} 픽셀 캐릭터가 추천 색상의 코디를 입은 미리보기`}
+      aria-label={`${gender === "F" ? "여성" : "남성"} 픽셀 캐릭터가 ${vibe} 분위기로 추천 색상의 코디를 입은 미리보기`}
     >
       {rects}
     </svg>
@@ -434,10 +521,12 @@ function LookHero({
   gender,
   items,
   weather,
+  vibe,
 }: {
   gender: "M" | "F";
   items: { category: string; description: string; color: string }[];
   weather: WeatherId;
+  vibe: string;
 }) {
   const { palette, legend } = buildLook(items);
   return (
@@ -486,7 +575,7 @@ function LookHero({
             }}
           />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <PixelCharacter gender={gender} palette={palette} cell={6} />
+            <PixelCharacter gender={gender} palette={palette} vibe={vibe} cell={6} />
           </div>
         </div>
 
@@ -647,7 +736,7 @@ function LookCoach() {
             {rec.isPending ? (
               <LookSkeleton />
             ) : rec.data ? (
-              <Result data={rec.data} gender={gender} weather={weather} />
+              <Result data={rec.data} gender={gender} weather={weather} vibe={vibe} />
             ) : (
               !rec.isError && <LookHint />
             )}
@@ -894,15 +983,19 @@ function Result({
   data,
   gender,
   weather,
+  vibe,
 }: {
   data: LookRecommendation;
   gender: "M" | "F";
   weather: WeatherId;
+  vibe: string;
 }) {
   return (
     <div className="space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300 motion-safe:ease-out">
       {/* 추천 색을 입은 미니멀 도트 캐릭터 — 결과 상단 히어로 */}
-      {data.items.length > 0 && <LookHero gender={gender} items={data.items} weather={weather} />}
+      {data.items.length > 0 && (
+        <LookHero gender={gender} items={data.items} weather={weather} vibe={vibe} />
+      )}
 
       {/* 룩 소개: 결과의 메인 헤더 */}
       <div className="rounded-2xl border border-border bg-surface p-4">
