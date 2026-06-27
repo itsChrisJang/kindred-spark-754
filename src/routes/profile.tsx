@@ -383,9 +383,120 @@ function Profile() {
           {save.isPending ? "저장 중…" : save.isSuccess ? "저장됨 ✓" : "프로필 저장"}
         </button>
       </div>
+
+      {jobModalOpen && (
+        <JobModal
+          industry={industry}
+          job={job}
+          onClose={() => setJobModalOpen(false)}
+          onSave={(nextIndustry, nextJob) => {
+            setIndustry(nextIndustry);
+            setJob(nextJob);
+            setJobModalOpen(false);
+          }}
+        />
+      )}
     </PhoneShell>
   );
 }
+
+function JobModal({
+  industry,
+  job,
+  onClose,
+  onSave,
+}: {
+  industry: string;
+  job: string;
+  onClose: () => void;
+  onSave: (industry: string, job: string) => void;
+}) {
+  const [localIndustry, setLocalIndustry] = useState(industry);
+  const [localJob, setLocalJob] = useState(job);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative z-10 mx-auto w-full max-w-[420px] animate-in slide-in-from-bottom rounded-t-3xl bg-pink-light/60 p-5 pb-6 shadow-xl sm:rounded-3xl">
+        <div className="flex items-center justify-between pb-4">
+          <h3 className="text-[18px] font-bold text-foreground">직업</h3>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-pink-light px-2.5 py-1 text-[11px] font-semibold text-pink">
+              직장인만 모집
+            </span>
+            <button
+              onClick={onClose}
+              aria-label="닫기"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-text-3 hover:bg-white/60"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white p-4 shadow-sm">
+          {/* 재직 인증 배너 */}
+          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-3">
+            <BadgeCheck size={22} className="flex-shrink-0 text-emerald-600" />
+            <div>
+              <div className="text-[13px] font-semibold text-emerald-800">재직 인증 완료</div>
+              <div className="text-[11px] text-emerald-700/80">회사명은 공개되지 않아요</div>
+            </div>
+          </div>
+
+          {/* 업종 */}
+          <div className="mt-4">
+            <div className="mb-2 text-[12px] text-text-3">업종</div>
+            <div className="flex flex-wrap gap-2">
+              {INDUSTRIES.map((i) => {
+                const on = i === localIndustry;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setLocalIndustry(i)}
+                    className={`rounded-full px-4 py-2 text-[13px] font-medium transition ${
+                      on
+                        ? "bg-pink text-white"
+                        : "border border-border bg-white text-text-2"
+                    }`}
+                  >
+                    {i}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 세부 직무 */}
+          <div className="mt-5">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[12px] text-text-3">세부 직무</span>
+              <span className="text-[11px] text-text-3">선택 입력</span>
+            </div>
+            <div className="relative">
+              <input
+                value={localJob}
+                onChange={(e) => setLocalJob(e.target.value)}
+                maxLength={30}
+                placeholder="예: 프론트엔드 개발자"
+                className="w-full rounded-xl bg-secondary px-3.5 py-3 pr-10 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-pink/40"
+              />
+              <Pencil size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-3" />
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onSave(localIndustry, localJob.trim())}
+          className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-pink text-[15px] font-semibold text-white"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
