@@ -696,103 +696,86 @@ function PlaceCard({ p }: { p: SeedPlace }) {
   const hasRealImage = !!p.kakaoImageUrl;
   const imgSrc = p.kakaoImageUrl ?? placeImage(p);
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      {hasRealImage ? (
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface p-3">
+      <div className="flex items-start gap-3">
         <a
           href={detailHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative block aspect-[16/9] w-full bg-secondary"
+          className="relative block h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-secondary"
         >
           <img
             src={imgSrc}
             alt={p.name}
             loading="lazy"
-            className="h-full w-full object-cover"
+            className={`h-full w-full object-cover ${hasRealImage ? "" : "opacity-80"}`}
             onError={(e) => {
               const el = e.currentTarget as HTMLImageElement;
               if (el.src !== placeImage(p)) el.src = placeImage(p);
             }}
           />
-          <span className="absolute right-2 top-2 tag-base bg-white/90 text-pink">{p.category}</span>
         </a>
-      ) : (
-        <div className="flex items-center gap-3 px-3 pt-3">
-          <a
-            href={detailHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative block h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-secondary"
-          >
-            <img
-              src={imgSrc}
-              alt={p.name}
-              loading="lazy"
-              className="h-full w-full object-cover opacity-80"
-            />
-          </a>
-          <span className="tag-base bg-pink/10 text-pink">{p.category}</span>
-        </div>
-      )}
-      <div className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[14px] font-semibold">{p.name}</div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-text-3">
-              <Star size={11} className="fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
-              <span>({p.reviewCount.toLocaleString()})</span>
-              <span className="text-border">·</span>
-              <span className="truncate">{p.kakaoCategory ?? p.address}</span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[14px] font-semibold">{p.name}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-text-3">
+                <Star size={11} className="fill-amber-400 text-amber-400" />
+                <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
+                <span>({p.reviewCount.toLocaleString()})</span>
+                <span className="text-border">·</span>
+                <span className="truncate">{p.kakaoCategory ?? p.category}</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0 text-right text-[12px] font-semibold text-pink">
+              {p.priceRange ?? "—"}
             </div>
           </div>
-          <div className="flex-shrink-0 text-right text-[12px] font-semibold text-pink">
-            {p.priceRange ?? "—"}
-          </div>
-        </div>
 
-        {p.menuExamples && p.menuExamples.length > 0 && (
-          <div className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-text-2">
-            <Utensils size={11} className="flex-shrink-0 text-text-3" />
-            <span className="truncate">{p.menuExamples.join(" · ")}</span>
-          </div>
-        )}
-
-        {p.reason && (
-          <div className="mt-1.5 line-clamp-2 rounded-md bg-secondary px-2 py-1 text-[11px] text-text-2">
-            {p.reason}
-          </div>
-        )}
-
-        <div className="mt-2 flex items-center gap-1.5">
-          <a
-            href={detailHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#FEE500] text-[12px] font-semibold text-[#3C1E1E]"
-          >
-            <ExternalLink size={12} />
-            카카오플레이스
-          </a>
-          <a
-            href={routeHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-border text-[12px] font-semibold text-foreground"
-          >
-            <MapPin size={12} className="text-pink" />
-            길찾기
-          </a>
-          {p.kakaoPhone && (
-            <a
-              href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
-              aria-label="전화"
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border text-text-2"
-            >
-              <Phone size={12} />
-            </a>
+          {p.menuExamples && p.menuExamples.length > 0 && (
+            <div className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-text-2">
+              <Utensils size={11} className="flex-shrink-0 text-text-3" />
+              <span className="truncate">{p.menuExamples.join(" · ")}</span>
+            </div>
           )}
         </div>
+      </div>
+
+      {p.reason && (
+        <div className="mt-2 line-clamp-2 rounded-md bg-secondary px-2 py-1 text-[11px] text-text-2">
+          {p.reason}
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center gap-1.5">
+        <a
+          href={detailHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#FEE500] text-[12px] font-semibold text-[#3C1E1E]"
+        >
+          <ExternalLink size={12} />
+          카카오플레이스
+        </a>
+        <a
+          href={routeHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-border text-[12px] font-semibold text-foreground"
+        >
+          <MapPin size={12} className="text-pink" />
+          길찾기
+        </a>
+        {p.kakaoPhone && (
+          <a
+            href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
+            aria-label="전화"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border text-text-2"
+          >
+            <Phone size={12} />
+          </a>
+        )}
       </div>
     </div>
   );
