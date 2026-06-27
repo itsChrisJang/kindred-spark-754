@@ -106,7 +106,7 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   ],
 };
 
-function placeImage(p: DatePlace) {
+function placeImage(p: SeedPlace) {
   const pool = CATEGORY_IMAGES[p.category] ?? CATEGORY_IMAGES.카페;
   const hash = [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0);
   return pool[hash % pool.length];
