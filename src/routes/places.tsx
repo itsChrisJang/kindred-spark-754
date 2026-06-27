@@ -355,6 +355,7 @@ function Places() {
           lat={center.lat}
           lng={center.lng}
           zoom={selectedPlace ? 3 : 5}
+          centerOffsetY={centerOffsetY}
           pins={pins}
           onPinClick={handlePinClick}
         />
