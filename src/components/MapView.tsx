@@ -48,7 +48,7 @@ function loadKakaoSdk(): Promise<any> {
 }
 
 const BALLOON_STYLE =
-  "display:inline-block;padding:5px 10px;font-size:11px;font-weight:600;color:#111;white-space:nowrap;line-height:1.2;";
+  "transform:translate(-50%,-160%);display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;color:#111;background:rgba(255,255,255,0.95);border-radius:9999px;white-space:nowrap;line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,0.08);";
 
 export function MapView({
   lat,
