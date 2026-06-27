@@ -422,51 +422,55 @@ function Profile() {
 
           <div className="mt-2 border-t border-border pt-3">
             <div className="mb-2 text-[12px] text-text-3">직접 추가</div>
-            <div className="flex flex-wrap items-center gap-2">
-              {customHobbies.map((h) => (
-                <span
-                  key={h}
-                  className="inline-flex items-center gap-1 rounded-full bg-pink px-3 py-1.5 text-sm text-white"
-                >
-                  {h}
-                  <button
-                    type="button"
-                    onClick={() => toggleHobby(h)}
-                    aria-label={`${h} 삭제`}
-                    className="flex h-4 w-4 items-center justify-center"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-              <div className="flex items-center gap-1 rounded-full border border-dashed border-pink/60 px-2 py-1">
-                <input
-                  value={customHobby}
-                  onChange={(e) => setCustomHobby(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addCustomHobby();
-                    }
-                  }}
-                  maxLength={12}
-                  placeholder="태그 입력"
-                  className="w-20 bg-transparent px-1 text-sm outline-none placeholder:text-text-3"
-                />
-                <button
-                  type="button"
-                  onClick={addCustomHobby}
-                  disabled={!customHobby.trim() || hobbies.length >= MAX_HOBBIES}
-                  className="text-sm font-semibold text-pink disabled:opacity-40"
-                >
-                  + 추가
-                </button>
-              </div>
+            <div className="flex items-center gap-2 rounded-full border border-dashed border-pink/60 px-3 py-1.5">
+              <input
+                value={customHobby}
+                onChange={(e) => setCustomHobby(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  // 한글 IME 조합 중 Enter는 무시 (중복 추가 방지)
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                  e.preventDefault();
+                  addCustomHobby();
+                }}
+                maxLength={12}
+                placeholder="태그를 입력하고 추가하세요"
+                className="flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-text-3"
+              />
+              <button
+                type="button"
+                onClick={addCustomHobby}
+                disabled={!customHobby.trim() || hobbies.length >= MAX_HOBBIES}
+                className="text-sm font-semibold text-pink disabled:opacity-40"
+              >
+                + 추가
+              </button>
             </div>
+            {customHobbies.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {customHobbies.map((h) => (
+                  <span
+                    key={h}
+                    className="inline-flex items-center gap-1 rounded-full bg-pink px-3 py-1.5 text-sm text-white"
+                  >
+                    {h}
+                    <button
+                      type="button"
+                      onClick={() => toggleHobby(h)}
+                      aria-label={`${h} 삭제`}
+                      className="flex h-4 w-4 items-center justify-center"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <p className="mt-2 text-[11px] text-text-3">
               직접 추가한 태그는 AI 대화 연습 소재로도 활용돼요
             </p>
           </div>
+
         </Card>
 
 
