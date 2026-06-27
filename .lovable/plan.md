@@ -1,51 +1,47 @@
-## 목표
+## 데이트 장소 페이지 풀스크린 지도 + 바텀시트 개편
 
-현재 `src/data/places.json`에 하드코딩된 데이트 장소 데이터를 Lovable Cloud DB로 옮겨, 코드 배포 없이 데이터를 추가·수정·삭제할 수 있게 만든다.
+### 1. 카테고리 칩 (가로형)
+- 기존 세로 [아이콘↑/라벨↓] 박스를 `[아이콘 - 라벨]` 가로 정렬로 변경
+- 아이콘 14px, 라벨 16px (font-semibold), `rounded-full` pill
+- 활성: `bg-pink text-white`, 비활성: `bg-surface/90` 글래스 느낌 (지도 위 플로팅)
+- 좌우 스크롤 가능 (`overflow-x-auto`), 가로 패딩 16px
 
-## 변경 사항
+### 2. 풀스크린 지도 레이아웃
+- 기존 `scroll-area` + 정렬바 + 작은 MapView + 카드 리스트 구조 제거
+- 상단 네비/필터바 아래부터 하단 BottomNav 위까지 지도 컨테이너가 `flex-1`로 꽉 채움
+- `MapView`에 `fill?: boolean` prop 추가 → true면 `height` 무시하고 `h-full w-full`로 렌더링 (border/radius 제거)
+- OSM 폴백도 동일하게 fill 지원
+- 지도 마커: 필터 결과(`sorted`) 전체를 표시 (현재는 5개 제한)
 
-### 1. DB 스키마 (마이그레이션 1개)
+### 3. 카테고리 플로팅
+- 카테고리 칩 줄을 지도 위 `absolute top-2 left-0 right-0 z-10`로 배치
+- 좌우 fade-mask 그라데이션으로 자연스럽게 잘리도록
 
-`public.date_places` 테이블 신설.
+### 4. 드래그 가능한 바텀시트 (지도 위 오버레이)
+- 상태: `collapsed` (지도 영역의 ~15%, 핸들+요약+첫 카드 peek) / `expanded` (~90%, 내부 스크롤)
+- `position: absolute`, `bottom: 0`, `transform: translateY(...)`로 두 스냅 포인트 간 `transition-transform duration-300`
+- 시트 헤더(핸들 + "OO곳" 텍스트) 탭 → toggle expand
+- 시트 body: `overflow-y-auto`, 확장 시에만 스크롤 활성, 기존 `PlaceCard` 재사용
+- "무한스크롤": 현재 데이터는 클라이언트 캐시(최대 60여 곳)이므로 페이지네이션 슬라이스(20개씩) + `IntersectionObserver`로 점진 노출 구현 (서버 백필은 변경 없음)
+- 배경 스크롤 잠금은 expanded 상태에서만
 
-- 컬럼: `id`(text PK, 기존 `sd-1`/`hn-1` 유지), `name`, `category`, `area`, `address`, `lat`, `lng`, `rating`(numeric), `review_count`, `price_range`, `menu_examples`(text[]), `mood`, `is_after`(bool), `reason`, `image_query`, `sort_weight`(int, 추천순용), `created_at`, `updated_at`.
-- RLS ON. 정책:
-  - `TO anon, authenticated` SELECT 허용 — 공개 큐레이션 데이터.
-  - INSERT/UPDATE/DELETE는 정책 없음(어드민이 SQL/대시보드로 관리).
-- GRANT: `SELECT TO anon, authenticated`, `ALL TO service_role`.
-- `set_updated_at` 트리거 1개.
-- 기존 `places.json` 60여 행을 같은 마이그레이션 안에서 `INSERT ... ON CONFLICT DO NOTHING`으로 시드.
+### 5. 마커 선택 → 시트 필터링
+- `selectedId` 상태 추가
+- `MapView`에 `onPinClick?: (id) => void` prop 추가, pins에 `id` 포함하도록 타입 확장
+- 마커 클릭 시: `selectedId` 설정 + 시트 expanded로 자동 전환 + 해당 장소로 지도 `panTo` (center 갱신)
+- 시트 상단에 선택된 경우 `[선택된 장소명 ✕]` 칩 노출, 클릭 시 `selectedId=null`로 초기화 → 전체 목록 복귀
+- 시트 데이터 소스: `selectedId ? [해당 장소] : sortedAll`
 
-### 2. 데이터 접근 (서버 함수)
+### 6. 보조 정리
+- 정렬 드롭다운("추천순/평점순")은 시트 헤더 우측으로 이동
+- "애프터로 추천" 섹션은 시트 내부 하단 섹션으로 통합
+- `useEffect` 배경 스크롤 잠금 조건을 `sheetState === 'expanded'`로 변경
+- 필터 시트(FilterSheet) 로직은 그대로 유지
 
-`src/lib/places.functions.ts` 신설.
+### 기술 노트
+- `MapView` 변경: `fill`, `onPinClick`, `pins[].id` 추가. Kakao SDK marker에 `kakao.maps.event.addListener(marker,'click', ...)` 등록. OSM 폴백에서는 onPinClick 비활성화(iframe 한계)되므로 시트 카드 클릭으로 대체 가능.
+- 시트 드래그 제스처는 1차 범위에서 제외(탭 토글만). 필요 시 후속 작업.
 
-- `listPlacesFn({ area })` — 공개 read-only 서버 함수. `requireSupabaseAuth` 사용하지 않음(공개 데이터). 핸들러 안에서 publishable 키 클라이언트를 만들어 SSR 안전하게 호출. 비공개 컬럼 없음.
-- DB row → `SeedPlace` 형태(camelCase)로 매핑해서 반환.
-
-### 3. 페이지 (`src/routes/places.tsx`)
-
-- `placesSeed` JSON import 제거.
-- TanStack Query 패턴으로 전환:
-  - `placesQueryOptions(area)` 정의 → 라우트 `loader`에서 `ensureQueryData`, 컴포넌트에서 `useSuspenseQuery`.
-  - `area` 변경 시 새 쿼리키로 자동 refetch.
-- 필터·정렬·지도 마커 로직은 그대로 유지(메모리 내).
-- `errorComponent` / `notFoundComponent` 추가(현재 누락된 경우 함께 보강).
-
-### 4. 정리
-
-- `src/data/places.json` 삭제.
-- `DatePlace` 타입에 `area`, `mood` 옵션 필드 정식 포함(이미 `SeedPlace` 확장으로 쓰던 것 흡수).
-
-## 기술 노트
-
-- `id`를 text로 유지하는 이유: 기존 데이터의 `sd-1`, `hn-1` 패턴을 시드 후에도 사람이 읽고 관리하기 쉬움. 신규 추가도 자유 문자열 가능.
-- 공개 데이터라 `anon` SELECT를 명시적으로 허용 — 다른 user-owned 테이블과 정책 결이 다름을 RLS 정책 코멘트에 기록.
-- 글쓰기 권한은 정책 없음 = 차단. 운영자 추가/수정은 추후 어드민 화면 또는 마이그레이션·`supabase--insert` 도구로 진행. (어드민 화면이 필요하면 별도 작업으로 분리)
-- 이미지 매핑(`CATEGORY_IMAGES`)은 카테고리 기반 폴백이라 코드에 그대로 유지. 장소별 실사 이미지 URL을 DB에 넣고 싶다면 후속 작업으로 `image_url` 컬럼 추가.
-
-## 영향 범위
-
-- 변경: `src/routes/places.tsx`, `src/lib/api.ts`(타입), 새 마이그레이션, 새 `src/lib/places.functions.ts`.
-- 삭제: `src/data/places.json`.
-- 다른 라우트/기능에는 영향 없음.
+### 작업 파일
+- `src/routes/places.tsx` — 레이아웃/시트/상태 재작성
+- `src/components/MapView.tsx` — `fill`, `onPinClick`, `pins[].id` 지원

@@ -56,15 +56,22 @@ export function MapView({
   height = 180,
   pins,
   label,
+  fill = false,
+  onPinClick,
 }: {
   lat: number;
   lng: number;
   /** 카카오맵 level (1=가장 가까움, 14=가장 멈). 기본 4 (≈ OSM zoom 15). */
   zoom?: number;
   height?: number;
-  pins?: { lat: number; lng: number; label?: string }[];
+  pins?: { id?: string; lat: number; lng: number; label?: string }[];
   label?: string;
+  /** true면 부모 컨테이너를 100%로 채움 (height 무시, 보더/라운드 제거) */
+  fill?: boolean;
+  /** 마커 클릭 콜백 (id 또는 label 전달) */
+  onPinClick?: (id: string) => void;
 }) {
+
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
