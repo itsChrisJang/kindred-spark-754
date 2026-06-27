@@ -70,9 +70,20 @@ const SORT = [
 ] as const;
 type Sort = (typeof SORT)[number]["value"];
 
-function naverMapUrl(name: string, address: string) {
+function kakaoMapSearchUrl(name: string, address: string) {
   const q = encodeURIComponent(`${name} ${address}`);
-  return `https://map.naver.com/p/search/${q}`;
+  return `https://map.kakao.com/?q=${q}`;
+}
+function kakaoMapRouteUrl(p: {
+  kakaoPlaceId?: string;
+  name: string;
+  lat: number;
+  lng: number;
+}) {
+  if (p.kakaoPlaceId) {
+    return `https://map.kakao.com/link/to/${p.kakaoPlaceId}`;
+  }
+  return `https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`;
 }
 
 const CATEGORY_IMAGES: Record<string, string[]> = {
