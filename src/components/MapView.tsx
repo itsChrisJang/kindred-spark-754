@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
-function escapeHtml(s: string): string {
-  return String(s).replace(/[&<>"']/g, (c) => (
-    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string
-  ));
-}
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
@@ -47,12 +42,16 @@ function loadKakaoSdk(): Promise<any> {
   return sdkPromise;
 }
 
-function balloonHtml(name: string, sublabel?: string) {
-  const safeName = escapeHtml(name);
-  const sub = sublabel
-    ? `<div style="font-size:10px;font-weight:500;color:#FF4B7B;line-height:1.25;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${escapeHtml(sublabel)}</div>`
-    : "";
-  return `<div style="transform:translate(-50%,-160%);background:#fff;border:1px solid #FFD3DF;border-radius:12px;padding:6px 10px;box-shadow:0 4px 14px rgba(255,75,123,0.18);display:inline-block;"><div style="font-size:12px;font-weight:700;color:#111;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${safeName}</div>${sub}</div>`;
+function pinHtml(selected = false): string {
+  // 핑크 톤 티어드롭 핀 (그라데이션 + 화이트 도트 + 그림자)
+  const scale = selected ? 1.15 : 1;
+  const ring = selected
+    ? "box-shadow:0 6px 16px rgba(255,75,123,0.45);"
+    : "box-shadow:0 4px 10px rgba(255,75,123,0.28);";
+  return `<div style="position:relative;width:28px;height:36px;transform:translate(-50%,-100%) scale(${scale});transform-origin:50% 100%;cursor:pointer;">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#FF7AA2 0%,#FF4B7B 100%);border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);${ring}"></div>
+    <div style="position:absolute;left:50%;top:10px;width:9px;height:9px;background:#fff;border-radius:50%;transform:translateX(-50%);"></div>
+  </div>`;
 }
 
 export function MapView({
@@ -145,22 +144,18 @@ export function MapView({
     if (!kakao?.maps || !map) return;
 
     const pos = new kakao.maps.LatLng(lat, lng);
-    const marker = new kakao.maps.Marker({ position: pos, map });
-    let iw: any;
-    if (label) {
-      iw = new kakao.maps.CustomOverlay({
-        position: pos,
-        content: balloonHtml(label),
-        yAnchor: 1,
-        xAnchor: 0.5,
-      });
-      iw.setMap(map);
-    }
+    const overlay = new kakao.maps.CustomOverlay({
+      position: pos,
+      content: pinHtml(false),
+      yAnchor: 1,
+      xAnchor: 0.5,
+      zIndex: 3,
+    });
+    overlay.setMap(map);
     return () => {
-      marker.setMap(null);
-      iw?.setMap(null);
+      overlay.setMap(null);
     };
-  }, [ready, hasPins, lat, lng, label]);
+  }, [ready, hasPins, lat, lng]);
 
   // 4) 다중 핀 마커 (pinsKey 기반 — 부모 리렌더에 영향 없음)
   useEffect(() => {
@@ -177,27 +172,31 @@ export function MapView({
 
     pins.forEach((p) => {
       const pos = new kakao.maps.LatLng(p.lat, p.lng);
-      const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
-      markersRef.current.push(marker);
-
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
-      kakao.maps.event.addListener(marker, "click", () => {
+
+      const el = document.createElement("div");
+      el.innerHTML = pinHtml(false);
+      el.style.cursor = "pointer";
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
         onPinClickRef.current?.(handlerId);
       });
 
-      if (p.label) {
-        const iw = new kakao.maps.CustomOverlay({
-          position: pos,
-          content: balloonHtml(p.label, p.sublabel),
-          yAnchor: 1,
-          xAnchor: 0.5,
-        });
-        iw.setMap(map);
-        markersRef.current.push({ setMap: (m: any) => iw.setMap(m) });
-      }
+      const overlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: el,
+        yAnchor: 1,
+        xAnchor: 0.5,
+        zIndex: 3,
+        clickable: true,
+      });
+      overlay.setMap(map);
+      markersRef.current.push({ setMap: (m: any) => overlay.setMap(m) });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, pinsKey]);
+
+
 
   const wrapperBase = fill
     ? "relative h-full w-full bg-secondary"
