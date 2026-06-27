@@ -47,8 +47,13 @@ function loadKakaoSdk(): Promise<any> {
   return sdkPromise;
 }
 
-const BALLOON_STYLE =
-  "transform:translate(-50%,-160%);display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;color:#111;background:rgba(255,255,255,0.95);border-radius:9999px;white-space:nowrap;line-height:1.2;box-shadow:0 1px 2px rgba(0,0,0,0.08);";
+function balloonHtml(name: string, sublabel?: string) {
+  const safeName = escapeHtml(name);
+  const sub = sublabel
+    ? `<div style="font-size:10px;font-weight:500;color:#FF4B7B;line-height:1.25;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${escapeHtml(sublabel)}</div>`
+    : "";
+  return `<div style="transform:translate(-50%,-160%);background:#fff;border:1px solid #FFD3DF;border-radius:12px;padding:6px 10px;box-shadow:0 4px 14px rgba(255,75,123,0.18);display:inline-block;"><div style="font-size:12px;font-weight:700;color:#111;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${safeName}</div>${sub}</div>`;
+}
 
 export function MapView({
   lat,
