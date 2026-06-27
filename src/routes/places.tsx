@@ -223,10 +223,26 @@ function Places() {
 
   const pins = sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name }));
 
+  // 헤더 + 필터바 실제 높이 → CSS 변수로 노출 (지도 높이 계산용)
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const mapWrapRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    const wrap = mapWrapRef.current;
+    if (!el || !wrap) return;
+    const ro = new ResizeObserver(() => {
+      wrap.style.setProperty("--places-header", `${el.offsetHeight}px`);
+    });
+    ro.observe(el);
+    wrap.style.setProperty("--places-header", `${el.offsetHeight}px`);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <PhoneShell>
-      <div className="z-20 flex-shrink-0 bg-surface">
+      <div ref={headerRef} className="z-20 flex-shrink-0 bg-surface">
         <NavHeader back title="데이트 장소" />
+
         {/* Pinned filter bar */}
         <div className="border-b border-border bg-surface">
           <div className="flex items-center gap-2 px-4 py-2.5">
@@ -315,8 +331,14 @@ function Places() {
         </div>
       </div>
 
-      {/* 지도 영역 (flex-1, BottomNav 높이만큼 마진) */}
-      <div className="relative min-h-0 flex-1" style={{ marginBottom: 68 }}>
+      {/* 지도 영역 — 헤더/필터/BottomNav 제외한 전체 영역 채움 */}
+      <div
+        ref={mapWrapRef}
+        className="relative w-full"
+        style={{ height: "calc(100dvh - var(--places-header, 105px) - 68px)", minHeight: 360 }}
+      >
+
+
         <MapView
           fill
           lat={center.lat}
