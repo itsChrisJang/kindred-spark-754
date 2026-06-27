@@ -214,7 +214,7 @@ export function MapView({
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
 
       const el = document.createElement("div");
-      el.innerHTML = pinHtml(!!p.selected);
+      el.innerHTML = pinHtml(!!p.selected, p.kind ?? "기본");
       el.style.cursor = "pointer";
       el.addEventListener("click", (e) => {
         e.stopPropagation();
