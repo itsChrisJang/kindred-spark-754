@@ -153,14 +153,18 @@ function Profile() {
               />
             </Field>
             <Field label="직업">
-              <input
-                value={job}
-                onChange={(e) => setJob(e.target.value)}
-                maxLength={30}
-                placeholder="예: 개발자"
-                className="input"
-              />
+              <button
+                type="button"
+                onClick={() => setJobModalOpen(true)}
+                className="input flex items-center justify-between text-left"
+              >
+                <span className={job ? "text-text-1" : "text-text-3"}>
+                  {job || "직업을 선택해주세요"}
+                </span>
+                <Pencil size={14} className="text-text-3" />
+              </button>
             </Field>
+
             <Field label="나이">
               <input
                 type="number"
