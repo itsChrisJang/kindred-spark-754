@@ -12,6 +12,8 @@ import {
   analyzePhotoFn,
   chatPracticeFn,
   recommendPlacesFn,
+  recommendLookFn,
+  type LookRecommendation,
 } from "./ai.functions";
 import {
   createMeetingFn,
@@ -19,6 +21,81 @@ import {
   myMeetingsFn,
 } from "./meetings.functions";
 import { saveProfileFn, getMyProfileFn } from "./profile.functions";
+
+// ── dev 인증 우회용 mock ──────────────────────────────────
+// dev 가짜 세션(localStorage["dev-auth-bypass"]) 사용 시, auth가 필요한 AI
+// 서버 함수 대신 mock을 반환한다. prod 번들에서는 import.meta.env.DEV 가드로
+// 분기 자체가 트리 셰이킹되어 사라진다.
+const devBypass = () =>
+  import.meta.env.DEV &&
+  typeof localStorage !== "undefined" &&
+  localStorage.getItem("dev-auth-bypass") === "1";
+
+const delay = <T>(value: T, ms = 1200): Promise<T> =>
+  new Promise((r) => setTimeout(() => r(value), ms));
+
+const MOCK_PHOTO_ANALYSIS: PhotoAnalysis = {
+  score: 82,
+  expression: 85,
+  brightness: 78,
+  retouchLevel: "natural",
+  retouchScore: 88,
+  isAiGenerated: false,
+  styleScore: 74,
+  styleComment: "깔끔한 셔츠가 단정한 인상을 줘요. 색을 한 톤만 밝게 가면 더 화사해 보여요.",
+  compositionScore: 80,
+  gazeDirection: "camera",
+  framing: "bust",
+  photoType: "portrait",
+  suitability: "main",
+  suitabilityReason: "정면 시선에 상반신 구도라 프로필 메인으로 쓰기 좋아요.",
+  oneLiner: "편안한 미소가 첫인상을 부드럽게 만들어주는 사진이에요.",
+  tips: [
+    { type: "good", text: "자연광이 얼굴을 고르게 비춰 인상이 밝아 보여요." },
+    { type: "good", text: "시선이 정면을 향해 신뢰감을 줘요." },
+    { type: "improve", text: "배경이 조금 산만해요. 단색 벽 앞이면 더 깔끔해요." },
+    { type: "improve", text: "상의 색이 어두워요. 밝은 톤이면 화사함이 살아요." },
+  ],
+};
+
+// dev mock: 룩 추천. 입력(성별/날씨/장소/분위기)을 결과에 반영해 실제처럼 보이게 한다.
+function mockLook(input: {
+  gender: "M" | "F";
+  weather: "sunny" | "cloudy" | "rainy";
+  place: string;
+  vibe: string;
+}): LookRecommendation {
+  const weatherLabel =
+    input.weather === "sunny" ? "맑은" : input.weather === "cloudy" ? "흐린" : "비 오는";
+  const genderLabel = input.gender === "M" ? "남성" : "여성";
+  const outer =
+    input.weather === "rainy"
+      ? { category: "아우터", description: "가벼운 트렌치코트나 발수 자켓", color: "베이지" }
+      : input.weather === "cloudy"
+        ? { category: "아우터", description: "얇은 가디건이나 블레이저", color: "그레이" }
+        : { category: "아우터", description: "선택: 얇은 셔켓 또는 생략", color: "아이보리" };
+
+  return {
+    title: `${input.vibe} ${genderLabel} 데이트 룩`,
+    summary: `${weatherLabel} 날씨에 ${input.place}에서 만나기 좋은 "${input.vibe}" 무드 코디예요. 과하지 않게 포인트를 주면서 깔끔한 실루엣을 살렸어요.`,
+    items: [
+      input.gender === "M"
+        ? { category: "상의", description: "오버핏 코튼 셔츠 또는 니트", color: "아이보리" }
+        : { category: "상의", description: "부드러운 라운드넥 블라우스", color: "라이트핑크" },
+      input.gender === "M"
+        ? { category: "하의", description: "슬림 스트레이트 슬랙스", color: "차콜" }
+        : { category: "하의", description: "A라인 미디 스커트 또는 와이드 팬츠", color: "베이지" },
+      outer,
+      { category: "신발", description: input.weather === "rainy" ? "방수 처리된 로퍼" : "클린한 화이트 스니커즈", color: "화이트" },
+      { category: "액세서리", description: "미니멀 메탈 시계와 얇은 체인", color: "실버" },
+    ],
+    tips: [
+      `${input.place} 조명에서는 톤 다운된 색이 차분하고 세련돼 보여요.`,
+      input.weather === "rainy" ? "비 오는 날엔 밝은 아우터로 칙칙함을 덜어주세요." : "한 톤만 밝게 잡아도 화사한 인상을 줘요.",
+      "전체 색은 3가지 이내로 맞추면 정돈된 느낌이 살아요.",
+    ],
+  };
+}
 
 // ── Types ────────────────────────────────────────────────
 export type Gender = "M" | "F";
@@ -344,6 +421,7 @@ export const api = {
 
   // AI ---------------------------------------------------
   analyzePhoto(imageDataUrl: string): Promise<PhotoAnalysis> {
+    if (devBypass()) return delay(MOCK_PHOTO_ANALYSIS);
     return analyzePhotoFn({ data: { imageDataUrl } });
   },
 
@@ -362,6 +440,16 @@ export const api = {
     mood?: string;
   }): Promise<DatePlace[]> {
     return recommendPlacesFn({ data: input });
+  },
+
+  recommendLook(input: {
+    gender: "M" | "F";
+    weather: "sunny" | "cloudy" | "rainy";
+    place: string;
+    vibe: string;
+  }): Promise<LookRecommendation> {
+    if (devBypass()) return delay(mockLook(input));
+    return recommendLookFn({ data: input });
   },
 };
 

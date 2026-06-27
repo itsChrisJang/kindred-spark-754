@@ -42,7 +42,6 @@ const WEATHERS = [
     icon: Sun,
     accent: "#E59A1B",
     sky: "linear-gradient(165deg, #7FC0EC 0%, #AED8EE 55%, #FCE7BE 100%)",
-    tint: "#E8F1FA",
   },
   {
     id: "cloudy",
@@ -50,7 +49,6 @@ const WEATHERS = [
     icon: Cloud,
     accent: "#5B6B7E",
     sky: "linear-gradient(165deg, #94A4B6 0%, #C0CAD6 60%, #DCE2E9 100%)",
-    tint: "#ECEFF3",
   },
   {
     id: "rainy",
@@ -58,7 +56,6 @@ const WEATHERS = [
     icon: CloudRain,
     accent: "#3E5168",
     sky: "linear-gradient(165deg, #46566B 0%, #637388 60%, #8492A6 100%)",
-    tint: "#E5EBF2",
   },
 ] as const;
 
@@ -205,20 +202,18 @@ function LookCoach() {
     resultRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }, [rec.isPending, rec.data]);
 
-  const theme = WEATHERS.find((w) => w.id === weather) ?? WEATHERS[0];
-  const accent = theme.accent;
-  const weatherLabel = theme.label;
+  const weatherLabel = WEATHERS.find((w) => w.id === weather)?.label ?? "";
   const genderLabel = gender === "M" ? "남성" : "여성";
 
   return (
     <PhoneShell>
       <NavHeader back backTo="/coach" title="오늘 데이트 룩 추천" />
       <div className="scroll-area bg-surface">
-        {/* 풀블리드 스카이 헤더: 날씨가 상단을 채우고 마스크로 흰 바탕에 녹아든다 */}
-        <WeatherHeader weather={weather} onSelect={setWeather} />
+        {/* 흰 캔버스 + 카드 시스템. 날씨는 자기 카드 안에만 색을 담아 톤을 고정한다. */}
+        <div className="space-y-4 px-4 pb-4 pt-4">
+          {/* 오늘의 날씨: 하늘이 카드 안에만 클립되는 포함형 위젯 */}
+          <WeatherCard weather={weather} onSelect={setWeather} />
 
-        {/* 나머지는 순백 — 폼은 크리스프하게, 결과 스와치는 색 충실도 보호 */}
-        <div className="space-y-5 px-4 pb-4 pt-4">
           <GenderToggle gender={gender} onChange={setGender} />
 
           {/* 데이트 무드: 장소·분위기를 같은 칩 어휘로 통일 */}
@@ -255,11 +250,11 @@ function LookCoach() {
           >
             <div className="mb-2 flex flex-wrap items-center justify-center gap-x-1.5 text-[11px] text-text-2">
               <span className="font-semibold text-text-1">{weatherLabel}</span>
-              <span style={{ color: accent, opacity: 0.55 }}>·</span>
+              <span className="text-text-3">·</span>
               <span>{place}</span>
-              <span style={{ color: accent, opacity: 0.55 }}>·</span>
+              <span className="text-text-3">·</span>
               <span>{vibe}</span>
-              <span style={{ color: accent, opacity: 0.55 }}>·</span>
+              <span className="text-text-3">·</span>
               <span>{genderLabel}</span>
             </div>
             <button
@@ -300,7 +295,7 @@ function LookCoach() {
             ) : rec.data ? (
               <Result data={rec.data} />
             ) : (
-              !rec.isError && <LookHint accent={accent} />
+              !rec.isError && <LookHint />
             )}
           </div>
         </div>
@@ -329,7 +324,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // 풀블리드 스카이 헤더: 선택한 날씨의 하늘이 화면 상단을 채우고,
 // 하단은 pink-light로 페이드되어 페이지와 자연스럽게 이어진다(섬처럼 보이지 않게).
-function WeatherHeader({
+// 포함형 날씨 위젯 카드: 하늘은 카드 안에만 클립되고, 페이지(흰색)는 영향을 안 받는다.
+// 결과 카드와 같은 카드 어휘(rounded/border/shadow)로 묶여 톤이 안정된다.
+function WeatherCard({
   weather,
   onSelect,
 }: {
@@ -337,15 +334,9 @@ function WeatherHeader({
   onSelect: (id: WeatherId) => void;
 }) {
   return (
-    <div className="relative overflow-hidden">
-      {/* 하늘+모션: 아래로 갈수록 투명해져 입력존 틴트가 비쳐 끊김 없이 이어진다 */}
-      <div
-        className="absolute inset-0"
-        style={{
-          WebkitMaskImage: "linear-gradient(to bottom, black 68%, transparent)",
-          maskImage: "linear-gradient(to bottom, black 68%, transparent)",
-        }}
-      >
+    <div className="relative overflow-hidden rounded-2xl border border-border shadow-card">
+      {/* 하늘+모션: 카드 표면 전체를 채우는 선택 날씨의 하늘 */}
+      <div className="absolute inset-0">
         {WEATHERS.map((w) => (
           <div
             key={w.id}
@@ -356,9 +347,9 @@ function WeatherHeader({
         ))}
         <WeatherFX weather={weather} />
       </div>
-      <div className="relative px-4 pb-12 pt-6">
-        <div className="mb-3 text-[13px] font-semibold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.25)]">
-          오늘 날씨
+      <div className="relative px-3.5 pb-3.5 pt-3">
+        <div className="mb-2.5 text-[13px] font-semibold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+          오늘의 날씨
         </div>
         <div className="grid grid-cols-3 gap-2">
           {WEATHERS.map((w) => (
@@ -480,17 +471,11 @@ function Chip({
   );
 }
 
-function LookHint({ accent }: { accent: string }) {
+function LookHint() {
   return (
-    <div
-      className="rounded-2xl border border-dashed bg-surface p-6 text-center"
-      style={{ borderColor: `${accent}55` }}
-    >
-      <div
-        className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
-        style={{ background: `${accent}1F` }}
-      >
-        <Shirt size={22} style={{ color: accent }} />
+    <div className="rounded-2xl border border-dashed border-pink-mid bg-surface p-6 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-pink-light">
+        <Shirt size={22} className="text-pink" />
       </div>
       <div className="mt-3 text-[14px] font-semibold leading-snug text-foreground">
         날씨·장소·분위기를 고르면

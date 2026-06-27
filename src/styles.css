@@ -252,3 +252,52 @@ select.input {
   box-shadow: 0 1px 4px rgba(0,0,0,.15);
   cursor: pointer;
 }
+
+/* ── 날씨 앰비언트 모션 (coach/look) ── */
+.weather-sun {
+  position: absolute;
+  top: -22px; right: -14px;
+  width: 116px; height: 116px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 214, 130, 0.95) 0%, rgba(255, 214, 130, 0) 68%);
+  animation: weather-sun-pulse 3.2s ease-in-out infinite;
+}
+@keyframes weather-sun-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.14); }
+}
+
+.weather-cloud {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  filter: blur(7px);
+}
+.weather-cloud--a { width: 92px; height: 26px; top: 14px; left: -50px; animation: weather-cloud-drift 9s linear infinite; }
+.weather-cloud--b { width: 64px; height: 20px; top: 44px; left: -40px; animation: weather-cloud-drift 13s linear infinite; animation-delay: -5s; }
+@keyframes weather-cloud-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(420px); }
+}
+
+.weather-rain span {
+  position: absolute;
+  top: -14px;
+  width: 1.5px; height: 13px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.6));
+  animation: weather-rain-fall linear infinite;
+}
+@keyframes weather-rain-fall {
+  0%   { transform: translateY(0);     opacity: 0; }
+  12%  { opacity: 0.7; }
+  100% { transform: translateY(130px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-sun,
+  .weather-cloud,
+  .weather-rain span { animation: none; }
+  .weather-cloud { display: none; }
+  .weather-rain span { opacity: 0.45; }
+}
