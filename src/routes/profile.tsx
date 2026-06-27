@@ -131,6 +131,25 @@ function Profile() {
   function toggleArea(a: string) {
     setAreas((arr) => (arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]));
   }
+  function toggleHobby(h: string) {
+    setHobbies((arr) => {
+      if (arr.includes(h)) return arr.filter((x) => x !== h);
+      if (arr.length >= MAX_HOBBIES) return arr;
+      return [...arr, h];
+    });
+  }
+  function addCustomHobby() {
+    const v = customHobby.trim();
+    if (!v) return;
+    if (hobbies.includes(v) || hobbies.length >= MAX_HOBBIES) {
+      setCustomHobby("");
+      return;
+    }
+    setHobbies((arr) => [...arr, v]);
+    setCustomHobby("");
+  }
+  const presetHobbySet = new Set(HOBBY_GROUPS.flatMap((g) => g.items));
+  const customHobbies = hobbies.filter((h) => !presetHobbySet.has(h));
   async function logout() {
     await api.signOut();
     location.href = "/login";
