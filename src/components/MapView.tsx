@@ -168,10 +168,7 @@ export function MapView({
     const bbox = `${lng - 0.008},${lat - 0.005},${lng + 0.008},${lat + 0.005}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     return (
-      <div
-        className="relative overflow-hidden rounded-2xl border border-border bg-secondary"
-        style={{ height, width: "100%" }}
-      >
+      <div className={wrapperBase} style={wrapperStyle}>
         <iframe
           title={label ?? "지도"}
           src={src}
@@ -189,14 +186,9 @@ export function MapView({
     );
   }
 
-  return (
-    <div
-      ref={containerRef}
-      className="overflow-hidden rounded-2xl border border-border bg-secondary"
-      style={{ height, width: "100%" }}
-    />
-  );
+  return <div ref={containerRef} className={wrapperBase} style={wrapperStyle} />;
 }
+
 
 
 // 한국 주요 지역 좌표
