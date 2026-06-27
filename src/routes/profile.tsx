@@ -23,7 +23,8 @@ const RESIDENCE_OPTIONS = [
 ];
 const SMOKE_OPTIONS = ["비흡연", "가끔", "흡연"];
 const DRINK_OPTIONS = ["안 마심", "가끔", "자주"];
-const HEIGHT_PREF = ["상관없음", "170cm 이상", "175cm 이상", "180cm 이상"];
+const HEIGHT_PREF_F = ["상관없음", "170cm 이상", "175cm 이상", "180cm 이상"];
+const HEIGHT_PREF_M = ["상관없음", "155cm 이상", "160cm 이상", "165cm 이상"];
 const INDUSTRIES = [
   "IT · 개발", "금융", "의료", "교육",
   "디자인 · 예술", "마케팅 · 기획", "영업 · 서비스",
