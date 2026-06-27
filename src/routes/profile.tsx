@@ -96,6 +96,7 @@ function Profile() {
     setDrinking(existing.drinking ?? "가끔");
     setExcludeCompany(existing.excludeSameCompany);
     setRematch(existing.rematchPrevious);
+    setHobbies(existing.hobbies ?? []);
   }, [existing]);
 
   // 내 나이 기준 ±N 적용
