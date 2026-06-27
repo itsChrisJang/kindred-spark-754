@@ -313,7 +313,7 @@ function Profile() {
                 onChange={(e) => setHeightPref(e.target.value)}
                 className="input"
               >
-                {HEIGHT_PREF.map((h) => (
+                {(gender === "F" ? HEIGHT_PREF_F : HEIGHT_PREF_M).map((h) => (
                   <option key={h} value={h}>{h}</option>
                 ))}
               </select>
