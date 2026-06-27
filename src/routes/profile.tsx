@@ -430,11 +430,10 @@ function JobModal({
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-sm">
-
-
           {/* 업종 */}
-          <div className="mt-4">
+          <div>
             <div className="mb-2 text-[12px] text-text-3">업종</div>
+
             <div className="flex flex-wrap gap-2">
               {INDUSTRIES.map((i) => {
                 const on = i === localIndustry;
