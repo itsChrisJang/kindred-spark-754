@@ -300,7 +300,7 @@ function Profile() {
                   max={230}
                   value={heightSelf}
                   onChange={(e) => setHeightSelf(e.target.value)}
-                  placeholder="178"
+                  placeholder={gender === "F" ? "161" : "174"}
                   className="input pr-9"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-3">cm</span>
