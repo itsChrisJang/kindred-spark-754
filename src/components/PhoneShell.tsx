@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Sparkles, User, CalendarHeart } from "lucide-react";
+import { Home, Search, Sparkles, User, Bookmark } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function PhoneShell({ children, hideNav }: { children: ReactNode; hideNav?: boolean }) {
@@ -16,11 +16,7 @@ function BottomNav() {
   const item = (to: string, Icon: typeof Home, label: string) => {
     const active = path === to || (to !== "/" && path.startsWith(to));
     return (
-      <Link
-        to={to}
-        className="flex flex-1 flex-col items-center gap-1 py-2"
-        aria-label={label}
-      >
+      <Link to={to} className="flex flex-1 flex-col items-center gap-1 py-2" aria-label={label}>
         <Icon size={22} className={active ? "text-pink" : "text-text-3"} />
         <span className={`text-[10px] ${active ? "text-pink font-medium" : "text-text-3"}`}>
           {label}
@@ -29,7 +25,7 @@ function BottomNav() {
     );
   };
   return (
-    <nav className="fixed inset-x-0 bottom-0 mx-auto flex h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[68px] w-full max-w-[420px] items-stretch justify-around border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)]">
       {item("/", Home, "홈")}
       {item("/places", Search, "장소")}
       <Link
@@ -42,7 +38,7 @@ function BottomNav() {
         </div>
         <span className="text-[10px] font-medium text-pink">AI 도우미</span>
       </Link>
-      {item("/me", CalendarHeart, "내 모임")}
+      {item("/me", Bookmark, "저장")}
       {item("/profile", User, "프로필")}
     </nav>
   );
@@ -74,9 +70,7 @@ export function NavHeader({
       </div>
       <div className={`flex-1 ${back ? "text-center" : ""}`}>
         {subtitle && !back && <div className="text-xs text-text-3">{subtitle}</div>}
-        {title && (
-          <h1 className="truncate text-[17px] font-semibold text-foreground">{title}</h1>
-        )}
+        {title && <h1 className="truncate text-[17px] font-semibold text-foreground">{title}</h1>}
       </div>
       <div className="flex w-10 items-center justify-end">{right}</div>
     </header>
