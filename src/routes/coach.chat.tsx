@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Lock, Send, Sparkles } from "lucide-react";
+import { Lock, Send, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { api, type ChatPracticeReply } from "@/lib/api";
