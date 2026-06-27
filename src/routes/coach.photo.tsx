@@ -13,6 +13,8 @@ import {
   Check,
   CheckCircle2,
   Lightbulb,
+  ChevronDown,
+  Copy,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
@@ -334,18 +336,84 @@ function UploadHints() {
   );
 }
 
+function OneLiner({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    if (!navigator.clipboard) return;
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {});
+  };
+  return (
+    <Reveal>
+      <div className="mb-2 flex items-center justify-between px-0.5">
+        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-pink">
+          <Sparkles size={14} /> AI 한 줄 평
+        </div>
+        <span
+          className={`text-[11px] font-medium text-green-600 transition-opacity duration-200 ${copied ? "opacity-100" : "opacity-0"}`}
+        >
+          복사됨
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label="한 줄 평 복사"
+        className="relative block w-full rounded-2xl border border-border bg-surface px-4 pb-4 pt-2 text-left transition-all active:scale-[0.99] active:bg-surface-2"
+      >
+        <span
+          aria-hidden
+          className="block select-none font-serif text-5xl leading-none text-pink/25"
+        >
+          “
+        </span>
+        <p className="-mt-2 text-[18px] font-bold leading-snug text-foreground">{text}</p>
+        <span className="absolute right-3 top-3 text-text-3">
+          {copied ? <Check size={15} className="text-green-600" /> : <Copy size={15} />}
+        </span>
+      </button>
+    </Reveal>
+  );
+}
+
 function Result({ data }: { data: PhotoAnalysis }) {
   // 결과를 동등한 카드 7장이 아니라 hero → 점수 요약 패널 → 메타 배지 → 코멘트의
   // 위계로 묶는다. stagger는 카드 단위가 아닌 "덩어리" 단위로만 줘 과한 연출을 피함.
   const scores = [
-    { icon: <Smile size={17} />, label: "표정 자연스러움", value: data.expression },
-    { icon: <Sun size={17} />, label: "밝기 & 배경", value: data.brightness },
-    { icon: <Shirt size={17} />, label: "스타일 · 옷차림", value: data.styleScore },
-    { icon: <Eye size={17} />, label: "시선 · 구도", value: data.compositionScore },
+    {
+      icon: <Smile size={17} />,
+      label: "표정 자연스러움",
+      value: data.expression,
+      hint: "미소와 눈빛이 편안하고 자연스러워 보이는 정도예요.",
+    },
+    {
+      icon: <Sun size={17} />,
+      label: "밝기 & 배경",
+      value: data.brightness,
+      hint: "얼굴이 또렷하게 보이는 조명과 깔끔한 배경인지 봐요.",
+    },
+    {
+      icon: <Shirt size={17} />,
+      label: "스타일 · 옷차림",
+      value: data.styleScore,
+      hint: "옷차림이 정돈되고 매력적으로 보이는지 평가해요.",
+    },
+    {
+      icon: <Eye size={17} />,
+      label: "시선 · 구도",
+      value: data.compositionScore,
+      hint: "시선 처리와 인물 구도가 안정적인지 봐요.",
+    },
     {
       icon: <Wand2 size={17} />,
       label: "보정 정도",
       value: data.retouchScore,
+      hint: "보정이 과하지 않고 실물처럼 자연스러운지 봐요.",
       valueText:
         data.retouchLevel === "natural"
           ? "자연스러움"
@@ -357,25 +425,8 @@ function Result({ data }: { data: PhotoAnalysis }) {
 
   return (
     <div className="space-y-5 px-4 pb-6">
-      {/* AI 한 줄 평 — 결과의 헤드라인. 채움 대신 큰 장식 따옴표 + 큰 굵은 타이포로 강조 */}
-      {data.oneLiner && (
-        <Reveal>
-          <div className="mb-2 flex items-center gap-1.5 px-0.5 text-[13px] font-semibold text-pink">
-            <Sparkles size={14} /> AI 한 줄 평
-          </div>
-          <div className="rounded-2xl border border-border bg-surface px-4 pb-4 pt-2">
-            <span
-              aria-hidden
-              className="block select-none font-serif text-5xl leading-none text-pink/25"
-            >
-              “
-            </span>
-            <p className="-mt-2 text-[18px] font-bold leading-snug text-foreground">
-              {data.oneLiner}
-            </p>
-          </div>
-        </Reveal>
-      )}
+      {/* AI 한 줄 평 — 결과의 헤드라인(탭하면 복사) */}
+      {data.oneLiner && <OneLiner text={data.oneLiner} />}
 
       {/* 항목별 점수 — 풀폭 미터 패널 */}
       <Section label="항목별 점수" delay={60} padded={false}>
@@ -405,18 +456,21 @@ function ScoreRow({
   label,
   value,
   valueText,
+  hint,
   index,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   valueText?: string;
+  hint?: string;
   index: number;
 }) {
   const tone = scoreTone(value);
   // 막대를 0 → value% 로 채우는 등장 전환. 행이 화면에 들어올 때 시작, 행마다 살짝 지연(stagger).
   const { ref, inView } = useInView<HTMLDivElement>();
   const [w, setW] = useState(0);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!inView) return;
     if (prefersReducedMotion()) {
@@ -428,27 +482,52 @@ function ScoreRow({
   }, [inView, value, index]);
 
   return (
-    <div ref={ref} className="px-4 py-3.5">
-      <div className="mb-2 flex items-center gap-2.5">
-        <span className="text-text-3">{icon}</span>
-        <span className="flex-1 text-sm font-medium text-foreground">{label}</span>
-        <span className={`text-sm font-bold tabular-nums ${tone.text}`}>
-          {valueText ?? `${value}점`}
-        </span>
-      </div>
-      <div
-        className="h-2 overflow-hidden rounded-full bg-secondary"
-        role="progressbar"
-        aria-valuenow={value}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={label}
+    <div ref={ref}>
+      {/* 행 전체가 탭 영역: 누르면 설명이 펼쳐짐(아코디언) */}
+      <button
+        type="button"
+        onClick={() => hint && setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full px-4 py-3.5 text-left transition-colors active:bg-surface-2"
       >
+        <div className="mb-2 flex items-center gap-2.5">
+          <span className="text-text-3">{icon}</span>
+          <span className="flex-1 text-sm font-medium text-foreground">{label}</span>
+          <span className={`text-sm font-bold tabular-nums ${tone.text}`}>
+            {valueText ?? `${value}점`}
+          </span>
+          {hint && (
+            <ChevronDown
+              size={15}
+              className={`text-text-3 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+            />
+          )}
+        </div>
         <div
-          className={`bar-fill h-full w-full origin-left rounded-full ${tone.bar}`}
-          style={{ transform: `scaleX(${w / 100})` }}
-        />
-      </div>
+          className="h-2 overflow-hidden rounded-full bg-secondary"
+          role="progressbar"
+          aria-valuenow={value}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={label}
+        >
+          <div
+            className={`bar-fill h-full w-full origin-left rounded-full ${tone.bar}`}
+            style={{ transform: `scaleX(${w / 100})` }}
+          />
+        </div>
+      </button>
+      {/* 설명 — grid-rows로 부드럽게 펼침(레이아웃 thrash 없음) */}
+      {hint && (
+        <div
+          className="grid px-4 transition-[grid-template-rows] duration-300 ease-out"
+          style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+        >
+          <div className="overflow-hidden">
+            <p className="pb-3.5 text-xs leading-relaxed text-text-3">{hint}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -594,7 +673,7 @@ function Feedback({ tips, delay }: { tips: PhotoAnalysis["tips"]; delay?: number
                 type="button"
                 onClick={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
                 aria-pressed={checked}
-                className="chat-pop flex w-full items-start gap-2.5 px-4 py-2.5 text-left transition-colors active:bg-surface-2"
+                className="chat-pop flex w-full items-start gap-2.5 px-4 py-2.5 text-left transition-all active:scale-[0.99] active:bg-surface-2"
                 style={rowDelay(goods.length + i)}
               >
                 <span
