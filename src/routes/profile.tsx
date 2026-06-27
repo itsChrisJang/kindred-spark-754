@@ -109,7 +109,7 @@ function Profile() {
     mutationFn: () => {
       const payload: Omit<UserProfile, "id" | "email"> = {
         nickname, age, gender, job, bio: existing?.bio ?? "",
-        hobbies: existing?.hobbies ?? [], photos: existing?.photos ?? [],
+        hobbies, photos: existing?.photos ?? [],
         preferredAgeMin: effectiveRange[0],
         preferredAgeMax: effectiveRange[1],
         useAgeWindow: useWindow,
