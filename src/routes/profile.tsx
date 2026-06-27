@@ -416,37 +416,24 @@ function JobModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative z-10 mx-auto w-full max-w-[420px] animate-in slide-in-from-bottom rounded-t-3xl bg-pink-light/60 p-5 pb-6 shadow-xl sm:rounded-3xl">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative z-10 mx-auto w-full max-w-[380px] animate-in slide-in-from-bottom rounded-t-3xl bg-pink-light p-5 pb-6 shadow-xl sm:rounded-3xl">
         <div className="flex items-center justify-between pb-4">
           <h3 className="text-[18px] font-bold text-foreground">직업</h3>
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-pink-light px-2.5 py-1 text-[11px] font-semibold text-pink">
-              직장인만 모집
-            </span>
-            <button
-              onClick={onClose}
-              aria-label="닫기"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-text-3 hover:bg-white/60"
-            >
-              <X size={16} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-text-3 hover:bg-white/60"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-sm">
-          {/* 재직 인증 배너 */}
-          <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3.5 py-3">
-            <BadgeCheck size={22} className="flex-shrink-0 text-emerald-600" />
-            <div>
-              <div className="text-[13px] font-semibold text-emerald-800">재직 인증 완료</div>
-              <div className="text-[11px] text-emerald-700/80">회사명은 공개되지 않아요</div>
-            </div>
-          </div>
-
           {/* 업종 */}
-          <div className="mt-4">
+          <div>
             <div className="mb-2 text-[12px] text-text-3">업종</div>
+
             <div className="flex flex-wrap gap-2">
               {INDUSTRIES.map((i) => {
                 const on = i === localIndustry;
