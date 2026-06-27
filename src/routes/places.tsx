@@ -716,7 +716,7 @@ function ChoiceCard({
 }
 
 function PlaceCard({ p }: { p: SeedPlace }) {
-  const detailHref = p.kakaoPlaceUrl ?? kakaoMapSearchUrl(p.name, p.address);
+  const detailHref = kakaoPlaceDetailUrl(p);
   const routeHref = kakaoMapRouteUrl(p);
   const hasRealImage = !!p.kakaoImageUrl;
   const imgSrc = p.kakaoImageUrl ?? placeImage(p);
