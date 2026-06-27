@@ -530,23 +530,29 @@ function ChoiceCard({
 }
 
 function PlaceCard({ p }: { p: SeedPlace }) {
-  const primaryHref = p.kakaoPlaceUrl ?? naverMapUrl(p.name, p.address);
-  const primaryLabel = p.kakaoPlaceUrl ? "카카오맵에서 보기·예약" : "네이버 지도에서 길찾기";
+  const detailHref = p.kakaoPlaceUrl ?? kakaoMapSearchUrl(p.name, p.address);
+  const routeHref = kakaoMapRouteUrl(p);
+  const imgSrc = p.kakaoImageUrl ?? placeImage(p);
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="relative aspect-[16/9] w-full bg-secondary">
+      <a
+        href={detailHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative block aspect-[16/9] w-full bg-secondary"
+      >
         <img
-          src={placeImage(p)}
+          src={imgSrc}
           alt={p.name}
           loading="lazy"
           className="h-full w-full object-cover"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src =
-              "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=70";
+            const el = e.currentTarget as HTMLImageElement;
+            if (el.src !== placeImage(p)) el.src = placeImage(p);
           }}
         />
         <span className="absolute right-2 top-2 tag-base bg-white/90 text-pink">{p.category}</span>
-      </div>
+      </a>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
@@ -581,7 +587,7 @@ function PlaceCard({ p }: { p: SeedPlace }) {
             <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
             <span className="text-text-3">({p.reviewCount.toLocaleString()})</span>
           </div>
-          {p.kakaoPhone ? (
+          {p.kakaoPhone && (
             <a
               href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
               className="flex items-center gap-1 text-text-2 hover:text-pink"
@@ -589,41 +595,32 @@ function PlaceCard({ p }: { p: SeedPlace }) {
               <Phone size={12} />
               {p.kakaoPhone}
             </a>
-          ) : (
-            typeof p.distanceKm === "number" && p.distanceKm > 0 && (
-              <div className="flex items-center gap-1 text-text-3">
-                <MapPin size={12} />
-                {p.distanceKm.toFixed(1)}km
-              </div>
-            )
           )}
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <a
-            href={primaryHref}
+            href={detailHref}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex h-10 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-semibold text-white ${
-              p.kakaoPlaceUrl ? "bg-[#FEE500] !text-[#3C1E1E]" : "bg-[#03C75A]"
-            }`}
+            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-[#FEE500] text-[13px] font-semibold text-[#3C1E1E]"
           >
             <ExternalLink size={14} />
-            {primaryLabel}
+            카카오플레이스
           </a>
-          {p.kakaoPlaceUrl && (
-            <a
-              href={naverMapUrl(p.name, p.address)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface text-[12px] font-semibold text-text-2"
-            >
-              네이버 지도에서도 보기
-            </a>
-          )}
+          <a
+            href={routeHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-surface text-[13px] font-semibold text-text-1"
+          >
+            <MapPin size={14} className="text-pink" />
+            길찾기
+          </a>
         </div>
       </div>
     </div>
   );
 }
+
 
