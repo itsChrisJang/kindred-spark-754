@@ -51,6 +51,9 @@ function Profile() {
   const [age, setAge] = useState(25);
   const [gender, setGender] = useState<Gender>("M");
   const [job, setJob] = useState("");
+  const [industry, setIndustry] = useState<string>("IT · 개발");
+  const [jobModalOpen, setJobModalOpen] = useState(false);
+
 
   // 매칭 조건
   const [ageRange, setAgeRange] = useState<[number, number]>([23, 30]);
