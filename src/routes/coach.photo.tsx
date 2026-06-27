@@ -44,6 +44,42 @@ function prefersReducedMotion() {
   );
 }
 
+// 요소가 화면(뷰포트)에 들어오면 inView=true. reduced-motion/관측 불가 시 즉시 true(이미 보이는 기본 유지).
+function useInView<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (prefersReducedMotion() || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return { ref, inView };
+}
+
+// 스크롤로 화면에 들어올 때 등장 트랜지션을 시작하는 래퍼(div)
+function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { ref, inView } = useInView<HTMLDivElement>();
+  return (
+    <div ref={ref} className={`reveal ${inView ? "is-in" : ""} ${className ?? ""}`}>
+      {children}
+    </div>
+  );
+}
+
 // 0 → target 로 부드럽게 세는 카운트업 (reduced-motion이면 즉시 표시)
 function useCountUp(target: number, enabled: boolean) {
   const [v, setV] = useState(target);
@@ -219,7 +255,8 @@ function PhotoCoach() {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .result-rise { animation: result-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .reveal { opacity: 0; transform: translateY(8px); }
+        .reveal.is-in { animation: result-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
         .bar-fill { transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes chat-pop {
           from { opacity: 0; transform: translateY(7px) scale(0.97); }
@@ -232,7 +269,8 @@ function PhotoCoach() {
         }
         .typing-dot { animation: typing-bounce 1.15s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .result-rise { animation: none; }
+          .reveal { opacity: 1; transform: none; }
+          .reveal.is-in { animation: none; }
           .bar-fill { transition: none; }
           .chat-pop { animation: none; }
           .typing-dot { animation: none; }
@@ -259,8 +297,13 @@ function Section({
   padded?: boolean;
   children: React.ReactNode;
 }) {
+  const { ref, inView } = useInView<HTMLElement>();
   return (
-    <section className="result-rise" style={delay ? { animationDelay: `${delay}ms` } : undefined}>
+    <section
+      ref={ref}
+      className={`reveal ${inView ? "is-in" : ""}`}
+      style={inView && delay ? { animationDelay: `${delay}ms` } : undefined}
+    >
       <SectionLabel>{label}</SectionLabel>
       <div
         className={`overflow-hidden rounded-2xl border border-border bg-surface ${padded ? "p-4" : ""}`}
@@ -316,7 +359,7 @@ function Result({ data }: { data: PhotoAnalysis }) {
     <div className="space-y-5 px-4 pb-6">
       {/* AI 한 줄 평 — 결과의 헤드라인. 채움 대신 큰 장식 따옴표 + 큰 굵은 타이포로 강조 */}
       {data.oneLiner && (
-        <section className="result-rise">
+        <Reveal>
           <div className="mb-2 flex items-center gap-1.5 px-0.5 text-[13px] font-semibold text-pink">
             <Sparkles size={14} /> AI 한 줄 평
           </div>
@@ -331,7 +374,7 @@ function Result({ data }: { data: PhotoAnalysis }) {
               {data.oneLiner}
             </p>
           </div>
-        </section>
+        </Reveal>
       )}
 
       {/* 항목별 점수 — 풀폭 미터 패널 */}
@@ -371,19 +414,21 @@ function ScoreRow({
   index: number;
 }) {
   const tone = scoreTone(value);
-  // 막대를 0 → value% 로 채우는 등장 전환. 행마다 살짝 지연(stagger).
+  // 막대를 0 → value% 로 채우는 등장 전환. 행이 화면에 들어올 때 시작, 행마다 살짝 지연(stagger).
+  const { ref, inView } = useInView<HTMLDivElement>();
   const [w, setW] = useState(0);
   useEffect(() => {
+    if (!inView) return;
     if (prefersReducedMotion()) {
       setW(value);
       return;
     }
-    const t = setTimeout(() => setW(value), 150 + index * 90);
+    const t = setTimeout(() => setW(value), index * 90);
     return () => clearTimeout(t);
-  }, [value, index]);
+  }, [inView, value, index]);
 
   return (
-    <div className="px-4 py-3.5">
+    <div ref={ref} className="px-4 py-3.5">
       <div className="mb-2 flex items-center gap-2.5">
         <span className="text-text-3">{icon}</span>
         <span className="flex-1 text-sm font-medium text-foreground">{label}</span>
@@ -411,11 +456,14 @@ function ScoreRow({
 // ── AI 코치 채팅: 메시지를 타이핑 인디케이터와 함께 한 개씩 순차 등장 ──
 function CoachChat({ messages }: { messages: string[] }) {
   const reduce = prefersReducedMotion();
+  const { ref, inView } = useInView<HTMLDivElement>();
   const [shown, setShown] = useState(reduce ? messages.length : 0);
-  const [typing, setTyping] = useState(!reduce && messages.length > 0);
+  const [typing, setTyping] = useState(false);
 
+  // 채팅이 화면에 들어올 때부터 타이핑→메시지 순차 등장 시작
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || !inView) return;
+    setTyping(messages.length > 0);
     const timers: ReturnType<typeof setTimeout>[] = [];
     let t = 250;
     messages.forEach((_, i) => {
@@ -430,12 +478,12 @@ function CoachChat({ messages }: { messages: string[] }) {
       t += 400; // 다음 메시지까지 간격
     });
     return () => timers.forEach(clearTimeout);
-    // 메시지 묶음이 바뀌면 key로 리마운트되므로 마운트 시 한 번만 실행
+    // 메시지 묶음이 바뀌면 key로 리마운트됨
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [inView]);
 
   return (
-    <div className="space-y-2.5">
+    <div ref={ref} className="space-y-2.5">
       <div className="flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple text-white">
           <Sparkles size={14} />
