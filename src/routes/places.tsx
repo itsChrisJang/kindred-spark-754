@@ -14,12 +14,12 @@ import {
   ArrowUpDown,
   Check,
   RotateCcw,
+  Phone,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
 import { MapView, AREA_COORDS } from "@/components/MapView";
-import { type DatePlace } from "@/lib/api";
 import { listPlacesFn, type SeedPlace } from "@/lib/places.functions";
 
 const placesQueryOptions = (area: string) =>
@@ -106,7 +106,7 @@ const CATEGORY_IMAGES: Record<string, string[]> = {
   ],
 };
 
-function placeImage(p: DatePlace) {
+function placeImage(p: SeedPlace) {
   const pool = CATEGORY_IMAGES[p.category] ?? CATEGORY_IMAGES.카페;
   const hash = [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0);
   return pool[hash % pool.length];
@@ -518,7 +518,9 @@ function ChoiceCard({
   );
 }
 
-function PlaceCard({ p }: { p: DatePlace }) {
+function PlaceCard({ p }: { p: SeedPlace }) {
+  const primaryHref = p.kakaoPlaceUrl ?? naverMapUrl(p.name, p.address);
+  const primaryLabel = p.kakaoPlaceUrl ? "카카오맵에서 보기·예약" : "네이버 지도에서 길찾기";
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="relative aspect-[16/9] w-full bg-secondary">
@@ -539,6 +541,9 @@ function PlaceCard({ p }: { p: DatePlace }) {
           <div className="flex-1">
             <div className="text-[15px] font-semibold">{p.name}</div>
             <div className="mt-0.5 text-xs text-text-3">{p.address}</div>
+            {p.kakaoCategory && (
+              <div className="mt-0.5 text-[11px] text-text-3">{p.kakaoCategory}</div>
+            )}
           </div>
           <div className="text-right">
             <div className="text-[13px] font-semibold text-pink">{p.priceRange ?? "—"}</div>
@@ -565,24 +570,49 @@ function PlaceCard({ p }: { p: DatePlace }) {
             <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
             <span className="text-text-3">({p.reviewCount.toLocaleString()})</span>
           </div>
-          {typeof p.distanceKm === "number" && (
-            <div className="flex items-center gap-1 text-text-3">
-              <MapPin size={12} />
-              {p.distanceKm.toFixed(1)}km
-            </div>
+          {p.kakaoPhone ? (
+            <a
+              href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
+              className="flex items-center gap-1 text-text-2 hover:text-pink"
+            >
+              <Phone size={12} />
+              {p.kakaoPhone}
+            </a>
+          ) : (
+            typeof p.distanceKm === "number" && p.distanceKm > 0 && (
+              <div className="flex items-center gap-1 text-text-3">
+                <MapPin size={12} />
+                {p.distanceKm.toFixed(1)}km
+              </div>
+            )
           )}
         </div>
 
-        <a
-          href={naverMapUrl(p.name, p.address)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#03C75A] text-[13px] font-semibold text-white"
-        >
-          <ExternalLink size={14} />
-          네이버 지도에서 예약·길찾기
-        </a>
+        <div className="mt-3 grid grid-cols-1 gap-2">
+          <a
+            href={primaryHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex h-10 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-semibold text-white ${
+              p.kakaoPlaceUrl ? "bg-[#FEE500] !text-[#3C1E1E]" : "bg-[#03C75A]"
+            }`}
+          >
+            <ExternalLink size={14} />
+            {primaryLabel}
+          </a>
+          {p.kakaoPlaceUrl && (
+            <a
+              href={naverMapUrl(p.name, p.address)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface text-[12px] font-semibold text-text-2"
+            >
+              네이버 지도에서도 보기
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
