@@ -125,8 +125,7 @@ const COLOR_SWATCHES: { keys: string[]; hex: string }[] = [
 
 function colorToHex(name: string): string {
   const n = name.toLowerCase();
-  for (const c of COLOR_SWATCHES)
-    if (c.keys.some((k) => n.includes(k.toLowerCase()))) return c.hex;
+  for (const c of COLOR_SWATCHES) if (c.keys.some((k) => n.includes(k.toLowerCase()))) return c.hex;
   return "#CBBEDF"; // 매칭 실패 시 중립 톤
 }
 
@@ -167,21 +166,263 @@ function CoatIcon({ size = 24, className }: { size?: number; className?: string 
   );
 }
 
+// 카테고리(자유 텍스트) 분류 정규식. 아이콘 표시(categoryIcon)와 픽셀 캐릭터
+// 슬롯 매핑(classifySlot)이 같은 규칙을 공유하도록 한 곳에 모은다.
+const CAT_RE = {
+  shoe: /신발|슈즈|스니커|구두|로퍼|부츠|샌들|힐|shoe|sneaker|boot/,
+  bag: /가방|백팩|클러치|토트|크로스|bag/,
+  glass: /안경|선글라스|glass/,
+  watch: /시계|워치|watch/,
+  outer: /아우터|자켓|재킷|코트|가디건|패딩|점퍼|블레이저|야상|트렌치|coat|jacket/,
+  bottom:
+    /하의|팬츠|바지|슬랙스|슬렉스|청바지|진|데님|스커트|치마|반바지|쇼츠|조거|pant|trouser|skirt/,
+  accessory: /액세서리|주얼리|목걸이|귀걸이|반지|팔찌|모자|벨트|스카프|accessor|jewel/,
+};
+
 // 카테고리 → 아이콘. 색 원이 행의 메인 리딩 요소이고, 아이콘은 카테고리를 빠르게
 // 식별하게 돕는 보조 표식이다.
 function categoryIcon(category: string): CatIcon {
   const c = category.toLowerCase();
-  if (/신발|슈즈|스니커|구두|로퍼|부츠|샌들|힐|shoe|sneaker|boot/.test(c)) return Footprints;
-  if (/가방|백팩|클러치|토트|크로스|bag/.test(c)) return ShoppingBag;
-  if (/안경|선글라스|glass/.test(c)) return Glasses;
-  if (/시계|워치|watch/.test(c)) return Watch;
-  if (/아우터|자켓|재킷|코트|가디건|패딩|점퍼|블레이저|야상|트렌치|coat|jacket/.test(c))
-    return CoatIcon;
-  if (/하의|팬츠|바지|슬랙스|슬렉스|청바지|진|데님|스커트|치마|반바지|쇼츠|조거|pant|trouser|skirt/.test(c))
-    return PantsIcon;
-  if (/액세서리|주얼리|목걸이|귀걸이|반지|팔찌|모자|벨트|스카프|accessor|jewel/.test(c))
-    return Gem;
+  if (CAT_RE.shoe.test(c)) return Footprints;
+  if (CAT_RE.bag.test(c)) return ShoppingBag;
+  if (CAT_RE.glass.test(c)) return Glasses;
+  if (CAT_RE.watch.test(c)) return Watch;
+  if (CAT_RE.outer.test(c)) return CoatIcon;
+  if (CAT_RE.bottom.test(c)) return PantsIcon;
+  if (CAT_RE.accessory.test(c)) return Gem;
   return Shirt;
+}
+
+// 픽셀 캐릭터 슬롯. 캐릭터엔 핵심 4종(상의/하의/아우터/신발)만 입히고,
+// 가방·안경·시계·주얼리 등 액세서리는 캐릭터에 그리지 않는다(null = 리스트에만 유지).
+type Slot = "top" | "bottom" | "outer" | "shoe";
+
+function classifySlot(category: string): Slot | null {
+  const c = category.toLowerCase();
+  if (CAT_RE.shoe.test(c)) return "shoe";
+  if (
+    CAT_RE.bag.test(c) ||
+    CAT_RE.glass.test(c) ||
+    CAT_RE.watch.test(c) ||
+    CAT_RE.accessory.test(c)
+  )
+    return null;
+  if (CAT_RE.outer.test(c)) return "outer";
+  if (CAT_RE.bottom.test(c)) return "bottom";
+  return "top"; // 상의가 기본값(categoryIcon과 동일한 우선순위)
+}
+
+// ── 미니멀 도트 픽셀 캐릭터 ──────────────────────────────────────────────
+// 16×24 셀 매트릭스. 각 글자가 part를 가리키고, 렌더 시 part→hex 팔레트로 색을 주입한다.
+//   O 외곽선 · X 눈 · H 머리 · S 피부 · P 볼터치(고정) | T 상의 · K 아우터(있으면)/없으면 상의색 · B 하의 · F 신발
+// 'K'(어깨/옆판+카라)는 아우터가 있으면 아우터색, 없으면 상의색으로 떨어져 아우터가
+// 상의 위 레이어로 보이게 한다. 새 이미지 자산 0개, 픽셀 경계는 crispEdges로 선명하게.
+const PIXEL_M = [
+  "................",
+  "................",
+  ".....OOOOOO.....",
+  "....OHHHHHHO....",
+  "...OHHHHHHHHO...",
+  "...OHSSSSSSHO...",
+  "...OHSSSSSSHO...",
+  "...OSSSSSSSSO...",
+  "...OSSXSSXSSO...",
+  "...OPSSSSSSPO...",
+  "....OSSSSSSO....",
+  ".....OSSSSO.....",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "...OBBBOOBBBO...",
+  "...OBBBOOBBBO...",
+  "...OBBBOOBBBO...",
+  "...OBBBOOBBBO...",
+  "...OFFFOOFFFO...",
+  "...OFFFOOFFFO...",
+];
+
+// 여성 베이스: 옆으로 흘러내리는 긴 머리(H) + A라인 스커트 + 가는 다리 실루엣.
+const PIXEL_F = [
+  "................",
+  "................",
+  ".....OOOOOO.....",
+  "....OHHHHHHO....",
+  "...OHHHHHHHHO...",
+  "...OHSSSSSSHO...",
+  "...OHSSSSSSHO...",
+  "...OHSSSSSSHO...",
+  "...OHSXSSXSHO...",
+  "...OHPSSSSPHO...",
+  "...OHSSSSSSHO...",
+  "....HOSSSSOH....",
+  "..OHKKTTTTKKHO..",
+  "..OHKKTTTTKKHO..",
+  "..OHKKTTTTKKHO..",
+  "..OHKKTTTTKKHO..",
+  "..OKKKTTTTKKKO..",
+  "..OKKKTTTTKKKO..",
+  "...OBBBBBBBBO...",
+  "..OBBBBBBBBBBO..",
+  "....OSSOOSSO....",
+  "....OSSOOSSO....",
+  "....OFFOOFFO....",
+  "....OFFOOFFO....",
+];
+
+// 고정 파트 팔레트(피부·머리·외곽선·볼터치). 추천 색과 무관하게 항상 동일.
+const PX_FIXED = {
+  outline: "#322E2B",
+  skin: "#F2C6A0",
+  hair: "#463A30",
+  blush: "#F2A9BC",
+};
+
+// 해당 슬롯 추천이 없을 때의 중립 베이스 색(깨지지 않게, 옷처럼 보이게).
+const PX_NEUTRAL = { top: "#C9CDD4", bottom: "#9AA0A8", shoe: "#5E636B" };
+
+type SlotPalette = { top: string; bottom: string; shoe: string; outer: string | null };
+
+const SLOT_LABEL: Record<Slot, string> = {
+  outer: "아우터",
+  top: "상의",
+  bottom: "하의",
+  shoe: "신발",
+};
+
+// items → 슬롯 팔레트 + 레전드. 같은 슬롯 중복 시 첫 매칭 우선.
+// 슬롯 색은 반드시 colorToHex()로 변환해 아래 리스트의 색 원과 hex가 동일하게 보장.
+function buildLook(items: { category: string; color: string }[]) {
+  const palette: SlotPalette = {
+    top: PX_NEUTRAL.top,
+    bottom: PX_NEUTRAL.bottom,
+    shoe: PX_NEUTRAL.shoe,
+    outer: null,
+  };
+  const filled = new Set<Slot>();
+  for (const it of items) {
+    const s = classifySlot(it.category);
+    if (!s || filled.has(s)) continue;
+    palette[s] = colorToHex(it.color);
+    filled.add(s);
+  }
+  // 위→아래(아우터·상의·하의·신발) 순으로, 추천이 있는 슬롯만 레전드에 노출.
+  const legend = (["outer", "top", "bottom", "shoe"] as Slot[])
+    .filter((s) => filled.has(s))
+    .map((s) => ({ slot: s, label: SLOT_LABEL[s], hex: palette[s] as string }));
+  return { palette, legend };
+}
+
+function pixelColor(ch: string, palette: SlotPalette): string | null {
+  switch (ch) {
+    case "O":
+    case "X":
+      return PX_FIXED.outline;
+    case "H":
+      return PX_FIXED.hair;
+    case "S":
+      return PX_FIXED.skin;
+    case "P":
+      return PX_FIXED.blush;
+    case "T":
+      return palette.top;
+    case "K":
+      return palette.outer ?? palette.top; // 아우터 없으면 상의색으로
+    case "B":
+      return palette.bottom;
+    case "F":
+      return palette.shoe;
+    default:
+      return null; // 빈 셀
+  }
+}
+
+// 정적 SVG <rect> 그리드. shape-rendering=crispEdges로 anti-alias 없이 픽셀 또렷.
+function PixelCharacter({
+  gender,
+  palette,
+  cell = 9,
+}: {
+  gender: "M" | "F";
+  palette: SlotPalette;
+  cell?: number;
+}) {
+  const matrix = gender === "F" ? PIXEL_F : PIXEL_M;
+  const rects: React.ReactNode[] = [];
+  for (let y = 0; y < matrix.length; y++) {
+    const row = matrix[y];
+    for (let x = 0; x < row.length; x++) {
+      const fill = pixelColor(row[x], palette);
+      if (!fill) continue;
+      rects.push(<rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={fill} />);
+    }
+  }
+  return (
+    <svg
+      width={16 * cell}
+      height={24 * cell}
+      viewBox="0 0 16 24"
+      shapeRendering="crispEdges"
+      role="img"
+      aria-label={`${gender === "F" ? "여성" : "남성"} 픽셀 캐릭터가 추천 색상의 코디를 입은 미리보기`}
+    >
+      {rects}
+    </svg>
+  );
+}
+
+// 결과 상단 히어로: 추천 색을 입은 캐릭터를 밝은 무대 위에 중앙 배치.
+// 무대는 라이트/다크 어디서나 외곽선 대비가 확보되도록 고정 라이트 톤을 쓴다.
+function LookHero({
+  gender,
+  items,
+}: {
+  gender: "M" | "F";
+  items: { category: string; description: string; color: string }[];
+}) {
+  const { palette, legend } = buildLook(items);
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-border shadow-card"
+      style={{ background: "linear-gradient(168deg, #FFF2F6 0%, #FDF6FA 46%, #FFFFFF 100%)" }}
+    >
+      {/* 은은한 코너 광원으로 무대 느낌만 살짝 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full opacity-60"
+        style={{ background: "radial-gradient(circle, rgba(255,75,123,0.16), transparent 70%)" }}
+      />
+      <div className="relative flex flex-col items-center px-4 pt-4 pb-4">
+        <div className="mb-2 inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide text-pink">
+          <Sparkles size={12} />
+          추천 룩 미리보기
+        </div>
+        <div className="flex flex-col items-center">
+          <PixelCharacter gender={gender} palette={palette} cell={9} />
+          {/* 발밑 그림자로 캐릭터를 무대에 안착 */}
+          <div className="mt-[-3px] h-2 w-24 rounded-[50%] bg-black/[0.12] blur-[3px]" />
+        </div>
+        {legend.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5">
+            {legend.map((l) => (
+              <span
+                key={l.slot}
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-2"
+              >
+                <span
+                  className="h-3 w-3 rounded-full ring-1 ring-black/10"
+                  style={{ background: l.hex }}
+                />
+                {l.label}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function LookCoach() {
@@ -249,18 +490,30 @@ function LookCoach() {
             style={{ bottom: "calc(68px + env(safe-area-inset-bottom))" }}
           >
             <div className="mb-2 flex flex-wrap items-center justify-center gap-x-1.5 text-[11px] text-text-2">
-              <span className="font-semibold text-text-1">{weatherLabel}</span>
+              {/* key를 값으로 줘서 선택이 바뀌면 토큰만 리마운트 → 부드럽게 페이드 인 */}
+              <span
+                key={weatherLabel}
+                className="inline-block font-semibold text-text-1 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+              >
+                {weatherLabel}
+              </span>
               <span className="text-text-3">·</span>
-              <span>{place}</span>
+              <span key={place} className="inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+                {place}
+              </span>
               <span className="text-text-3">·</span>
-              <span>{vibe}</span>
+              <span key={vibe} className="inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+                {vibe}
+              </span>
               <span className="text-text-3">·</span>
-              <span>{genderLabel}</span>
+              <span key={genderLabel} className="inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+                {genderLabel}
+              </span>
             </div>
             <button
               onClick={() => rec.mutate()}
               disabled={rec.isPending}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pink text-[15px] font-semibold text-white shadow-[0_4px_16px_rgba(255,75,123,0.32)] transition active:scale-[0.99] disabled:opacity-60"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-pink text-[15px] font-semibold text-white shadow-[0_4px_16px_rgba(255,75,123,0.32)] transition duration-200 ease-out motion-safe:active:scale-[0.99] disabled:opacity-60"
             >
               {rec.isPending ? (
                 <>
@@ -293,7 +546,7 @@ function LookCoach() {
             {rec.isPending ? (
               <LookSkeleton />
             ) : rec.data ? (
-              <Result data={rec.data} />
+              <Result data={rec.data} gender={gender} />
             ) : (
               !rec.isError && <LookHint />
             )}
@@ -380,13 +633,24 @@ function WeatherTile({
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`relative flex flex-col items-center gap-1.5 rounded-xl py-4 text-sm font-semibold transition ${
+      // 선택: 흰 카드가 떠오르고(scale+그림자) 그 날씨색 링으로 못박음.
+      // 비선택: 더 투명하게 가라앉혀 선택이 대비로 도드라지게.
+      className={`relative flex flex-col items-center gap-1.5 rounded-xl py-4 text-sm transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
         active
-          ? "bg-white text-slate-800 shadow-[0_4px_14px_rgba(0,0,0,0.16)] ring-1 ring-black/5"
-          : "border border-white/40 bg-white/30 text-slate-600 backdrop-blur-sm"
+          ? "bg-white font-bold text-slate-900 motion-safe:scale-[1.05]"
+          : "border border-white/30 bg-white/20 font-semibold text-slate-500 backdrop-blur-sm"
       }`}
+      style={
+        active
+          ? { boxShadow: `0 8px 20px rgba(0,0,0,0.18), 0 0 0 2px ${theme.accent}` }
+          : undefined
+      }
     >
-      <Icon size={22} style={{ color: theme.accent }} />
+      <Icon
+        size={22}
+        style={{ color: theme.accent }}
+        className={active ? "" : "opacity-55"}
+      />
       {theme.label}
     </button>
   );
@@ -434,8 +698,10 @@ function GenderToggle({
             key={g.id}
             onClick={() => onChange(g.id)}
             aria-pressed={gender === g.id}
-            className={`rounded-full px-4 py-1.5 text-[12px] font-medium transition ${
-              gender === g.id ? "bg-pink text-white shadow-sm" : "text-text-2"
+            className={`rounded-full px-4 py-1.5 text-[12px] transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
+              gender === g.id
+                ? "bg-pink font-semibold text-white shadow-[0_2px_8px_rgba(255,75,123,0.4)]"
+                : "font-medium text-text-3"
             }`}
           >
             {g.label}
@@ -461,11 +727,13 @@ function Chip({
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] px-4 text-[13px] font-medium transition ${
-        active ? "border-pink bg-pink text-white" : "border-border bg-surface text-text-2"
+      className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] px-4 text-[13px] transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
+        active
+          ? "border-pink bg-pink font-semibold text-white shadow-[0_4px_14px_rgba(255,75,123,0.4)] motion-safe:scale-[1.04]"
+          : "border-border bg-surface font-medium text-text-3"
       }`}
     >
-      {Icon && <Icon size={15} className={active ? "text-white" : "text-text-3"} />}
+      {Icon && <Icon size={15} className={active ? "text-white" : "text-text-3 opacity-70"} />}
       {children}
     </button>
   );
@@ -521,9 +789,12 @@ function LookSkeleton() {
   );
 }
 
-function Result({ data }: { data: LookRecommendation }) {
+function Result({ data, gender }: { data: LookRecommendation; gender: "M" | "F" }) {
   return (
     <div className="space-y-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300 motion-safe:ease-out">
+      {/* 추천 색을 입은 미니멀 도트 캐릭터 — 결과 상단 히어로 */}
+      {data.items.length > 0 && <LookHero gender={gender} items={data.items} />}
+
       {/* 룩 소개: 결과의 메인 헤더 */}
       <div className="rounded-2xl border border-border bg-surface p-4">
         <div className="flex items-center gap-2">
@@ -539,27 +810,29 @@ function Result({ data }: { data: LookRecommendation }) {
           색 원이 행의 리딩 요소이고, 색 이름은 우측에 보조 표기한다. */}
       {data.items.length > 0 && (
         <div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border bg-surface">
-          {data.items.map((it: { category: string; description: string; color: string }, i: number) => {
-            const Icon = categoryIcon(it.category);
-            return (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
-                <span
-                  className="h-9 w-9 shrink-0 rounded-full ring-1 ring-black/10"
-                  style={{ background: colorToHex(it.color) }}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <Icon size={13} className="shrink-0 text-text-3" />
-                    <span className="text-[13px] font-semibold">{it.category}</span>
-                    <span className="ml-auto shrink-0 pl-2 text-[11px] font-medium text-text-3">
-                      {it.color}
-                    </span>
+          {data.items.map(
+            (it: { category: string; description: string; color: string }, i: number) => {
+              const Icon = categoryIcon(it.category);
+              return (
+                <div key={i} className="flex items-center gap-3 px-4 py-3">
+                  <span
+                    className="h-9 w-9 shrink-0 rounded-full ring-1 ring-black/10"
+                    style={{ background: colorToHex(it.color) }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <Icon size={13} className="shrink-0 text-text-3" />
+                      <span className="text-[13px] font-semibold">{it.category}</span>
+                      <span className="ml-auto shrink-0 pl-2 text-[11px] font-medium text-text-3">
+                        {it.color}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[12px] leading-snug text-text-2">{it.description}</p>
                   </div>
-                  <p className="mt-0.5 text-[12px] leading-snug text-text-2">{it.description}</p>
                 </div>
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
       )}
 
