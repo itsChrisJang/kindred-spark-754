@@ -23,6 +23,11 @@ export type Database = {
           id: string
           image_query: string | null
           is_after: boolean
+          kakao_category: string | null
+          kakao_enriched_at: string | null
+          kakao_phone: string | null
+          kakao_place_id: string | null
+          kakao_place_url: string | null
           lat: number
           lng: number
           menu_examples: string[]
@@ -43,6 +48,11 @@ export type Database = {
           id: string
           image_query?: string | null
           is_after?: boolean
+          kakao_category?: string | null
+          kakao_enriched_at?: string | null
+          kakao_phone?: string | null
+          kakao_place_id?: string | null
+          kakao_place_url?: string | null
           lat: number
           lng: number
           menu_examples?: string[]
@@ -63,6 +73,11 @@ export type Database = {
           id?: string
           image_query?: string | null
           is_after?: boolean
+          kakao_category?: string | null
+          kakao_enriched_at?: string | null
+          kakao_phone?: string | null
+          kakao_place_id?: string | null
+          kakao_place_url?: string | null
           lat?: number
           lng?: number
           menu_examples?: string[]
