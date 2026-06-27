@@ -144,22 +144,18 @@ export function MapView({
     if (!kakao?.maps || !map) return;
 
     const pos = new kakao.maps.LatLng(lat, lng);
-    const marker = new kakao.maps.Marker({ position: pos, map });
-    let iw: any;
-    if (label) {
-      iw = new kakao.maps.CustomOverlay({
-        position: pos,
-        content: balloonHtml(label),
-        yAnchor: 1,
-        xAnchor: 0.5,
-      });
-      iw.setMap(map);
-    }
+    const overlay = new kakao.maps.CustomOverlay({
+      position: pos,
+      content: pinHtml(false),
+      yAnchor: 1,
+      xAnchor: 0.5,
+      zIndex: 3,
+    });
+    overlay.setMap(map);
     return () => {
-      marker.setMap(null);
-      iw?.setMap(null);
+      overlay.setMap(null);
     };
-  }, [ready, hasPins, lat, lng, label]);
+  }, [ready, hasPins, lat, lng]);
 
   // 4) 다중 핀 마커 (pinsKey 기반 — 부모 리렌더에 영향 없음)
   useEffect(() => {
@@ -176,27 +172,31 @@ export function MapView({
 
     pins.forEach((p) => {
       const pos = new kakao.maps.LatLng(p.lat, p.lng);
-      const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
-      markersRef.current.push(marker);
-
       const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
-      kakao.maps.event.addListener(marker, "click", () => {
+
+      const el = document.createElement("div");
+      el.innerHTML = pinHtml(false);
+      el.style.cursor = "pointer";
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
         onPinClickRef.current?.(handlerId);
       });
 
-      if (p.label) {
-        const iw = new kakao.maps.CustomOverlay({
-          position: pos,
-          content: balloonHtml(p.label, p.sublabel),
-          yAnchor: 1,
-          xAnchor: 0.5,
-        });
-        iw.setMap(map);
-        markersRef.current.push({ setMap: (m: any) => iw.setMap(m) });
-      }
+      const overlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: el,
+        yAnchor: 1,
+        xAnchor: 0.5,
+        zIndex: 3,
+        clickable: true,
+      });
+      overlay.setMap(map);
+      markersRef.current.push({ setMap: (m: any) => overlay.setMap(m) });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, pinsKey]);
+
+
 
   const wrapperBase = fill
     ? "relative h-full w-full bg-secondary"
