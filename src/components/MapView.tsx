@@ -56,15 +56,22 @@ export function MapView({
   height = 180,
   pins,
   label,
+  fill = false,
+  onPinClick,
 }: {
   lat: number;
   lng: number;
   /** 카카오맵 level (1=가장 가까움, 14=가장 멈). 기본 4 (≈ OSM zoom 15). */
   zoom?: number;
   height?: number;
-  pins?: { lat: number; lng: number; label?: string }[];
+  pins?: { id?: string; lat: number; lng: number; label?: string }[];
   label?: string;
+  /** true면 부모 컨테이너를 100%로 채움 (height 무시, 보더/라운드 제거) */
+  fill?: boolean;
+  /** 마커 클릭 콜백 (id 또는 label 전달) */
+  onPinClick?: (id: string) => void;
 }) {
+
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -131,8 +138,13 @@ export function MapView({
       const marker = new kakao.maps.Marker({
         position: new kakao.maps.LatLng(p.lat, p.lng),
         map,
+        clickable: true,
       });
       markersRef.current.push(marker);
+      if (onPinClick) {
+        const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
+        kakao.maps.event.addListener(marker, "click", () => onPinClick(handlerId));
+      }
       if (p.label) {
         const iw = new kakao.maps.InfoWindow({
           position: new kakao.maps.LatLng(p.lat, p.lng),
@@ -143,17 +155,20 @@ export function MapView({
         markersRef.current.push({ setMap: () => iw.close() });
       }
     });
-  }, [lat, lng, label, pins]);
+  }, [lat, lng, label, pins, onPinClick]);
+
+  const wrapperBase = fill
+    ? "relative h-full w-full bg-secondary"
+    : "relative overflow-hidden rounded-2xl border border-border bg-secondary";
+  const wrapperStyle = fill ? { width: "100%", height: "100%" } : { height, width: "100%" };
+
 
   // 키 미설정 또는 SDK 로드 실패 시 OpenStreetMap 정적 이미지로 대체 (마커 포함)
   if (!KAKAO_KEY || failed) {
     const bbox = `${lng - 0.008},${lat - 0.005},${lng + 0.008},${lat + 0.005}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
     return (
-      <div
-        className="relative overflow-hidden rounded-2xl border border-border bg-secondary"
-        style={{ height, width: "100%" }}
-      >
+      <div className={wrapperBase} style={wrapperStyle}>
         <iframe
           title={label ?? "지도"}
           src={src}
@@ -171,14 +186,9 @@ export function MapView({
     );
   }
 
-  return (
-    <div
-      ref={containerRef}
-      className="overflow-hidden rounded-2xl border border-border bg-secondary"
-      style={{ height, width: "100%" }}
-    />
-  );
+  return <div ref={containerRef} className={wrapperBase} style={wrapperStyle} />;
 }
+
 
 
 // 한국 주요 지역 좌표
