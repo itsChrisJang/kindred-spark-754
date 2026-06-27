@@ -134,7 +134,7 @@ function Places() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [areaOpen, setAreaOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [sheetState, setSheetState] = useState<"collapsed" | "expanded">("collapsed");
+  const [sheetState, setSheetState] = useState<"collapsed" | "peek" | "expanded">("collapsed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
