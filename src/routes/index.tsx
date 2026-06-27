@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 export const SITE_META: Record<PostSite, { label: string; color: string; bg: string }> = {
   SOLO_OFF: { label: "솔로오프", color: "#FF4B7B", bg: "#FFF0F4" },
   LOVEMATCHING: { label: "러브매칭", color: "#E85D04", bg: "#FFF4EE" },
-  MISEOL: { label: "미소율", color: "#7C5CFC", bg: "#F5F0FF" },
+  MISEOL: { label: "미설", color: "#7C5CFC", bg: "#F5F0FF" },
   MODPARTY: { label: "모드파티", color: "#0D6EFD", bg: "#EEF4FF" },
   ORANGES: { label: "오렌지즈", color: "#F77F00", bg: "#FFF8EE" },
   RETURN2ME: { label: "리턴투미", color: "#2D9D78", bg: "#EDFAF4" },
