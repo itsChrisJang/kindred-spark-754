@@ -38,6 +38,7 @@ function Home() {
   const [region, setRegion] = useState(ALL);
   const [sortMode, setSortMode] = useState<SortMode>("fresh");
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data, fetchNextPage, hasNextPage, isError, isFetchingNextPage, isLoading } =
@@ -58,7 +59,7 @@ function Home() {
   }, [posts]);
 
   const visiblePosts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = debouncedQuery.trim().toLowerCase();
     return posts
       .filter((post) => {
         const postLocation = getPostLocation(post);
@@ -84,7 +85,7 @@ function Home() {
         if (sortMode === "price-low") return priceOf(a) - priceOf(b);
         return new Date(b.crawledAt).getTime() - new Date(a.crawledAt).getTime();
       });
-  }, [openOnly, posts, query, region, sortMode]);
+  }, [debouncedQuery, openOnly, posts, region, sortMode]);
 
   const hasChangedFilters =
     !!activeSite || !openOnly || region !== ALL || sortMode !== "fresh" || !!query.trim();
@@ -102,12 +103,18 @@ function Home() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 250);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
   const resetConditions = () => {
     setActiveSite(undefined);
     setOpenOnly(true);
     setRegion(ALL);
     setSortMode("fresh");
     setQuery("");
+    setDebouncedQuery("");
   };
 
   return (
@@ -130,7 +137,7 @@ function Home() {
         <div className="px-4 pb-3 pt-1">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-3">
-              출처
+              브랜드
             </span>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
