@@ -10,6 +10,9 @@ import {
   Eye,
   Sparkles,
   RefreshCw,
+  Check,
+  CheckCircle2,
+  Lightbulb,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PhoneShell, NavHeader } from "@/components/PhoneShell";
@@ -341,29 +344,8 @@ function Result({ data }: { data: PhotoAnalysis }) {
         />
       </Section>
 
-      {/* 개선 포인트 — 중립 카드 + 색 도트(좋음=green / 개선=amber). 빈 배열이면 섹션 숨김 */}
-      {data.tips.length > 0 && (
-        <Section label="개선 포인트" delay={120} padded={false}>
-          <div className="divide-y divide-border">
-            {data.tips.map((t, idx) => {
-              const good = t.type === "good";
-              return (
-                <div key={idx} className="flex gap-2.5 px-4 py-3">
-                  <span
-                    className={`mt-[5px] h-2 w-2 shrink-0 rounded-full ${good ? "bg-green-500" : "bg-amber-500"}`}
-                  />
-                  <div>
-                    <div className="text-[11px] font-semibold text-text-3">
-                      {good ? "좋아요" : "개선 포인트"}
-                    </div>
-                    <div className="mt-0.5 text-sm leading-relaxed text-text-2">{t.text}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
+      {/* 코치 피드백 — 잘된 점(확인) + 개선점(체크 가능한 할 일) */}
+      {data.tips.length > 0 && <Feedback key={data.oneLiner} tips={data.tips} delay={120} />}
     </div>
   );
 }
@@ -482,6 +464,104 @@ function TypingBubble() {
         />
       ))}
     </div>
+  );
+}
+
+// ── 코치 피드백: 잘된 점은 확인 표시, 개선점은 체크 가능한 할 일 리스트 ──
+function rowDelay(i: number): React.CSSProperties {
+  return { animationDelay: `${60 + i * 55}ms` };
+}
+
+function GroupHeader({
+  icon,
+  title,
+  count,
+  hint,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  count: number;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 px-4 pb-1 pt-3">
+      {icon}
+      <span className="text-[11px] font-semibold text-text-3">{title}</span>
+      <span className="text-[11px] font-medium text-text-3/60">{count}</span>
+      {hint && <span className="ml-auto text-[10px] font-medium text-text-3/70">{hint}</span>}
+    </div>
+  );
+}
+
+function Feedback({ tips, delay }: { tips: PhotoAnalysis["tips"]; delay?: number }) {
+  const goods = tips.filter((t) => t.type === "good");
+  const improves = tips.filter((t) => t.type === "improve");
+  const [done, setDone] = useState<Record<number, boolean>>({});
+  const doneCount = improves.reduce((n, _, i) => n + (done[i] ? 1 : 0), 0);
+
+  return (
+    <Section label="코치 피드백" delay={delay} padded={false}>
+      {/* 잘하고 있어요 — 긍정 먼저 보여줘 평가 부담 완화 */}
+      {goods.length > 0 && (
+        <div>
+          <GroupHeader
+            icon={<CheckCircle2 size={13} className="text-green-600" />}
+            title="잘하고 있어요"
+            count={goods.length}
+          />
+          {goods.map((t, i) => (
+            <div
+              key={i}
+              className="chat-pop flex items-center gap-2.5 px-4 py-2.5"
+              style={rowDelay(i)}
+            >
+              <Check size={16} strokeWidth={2.5} className="shrink-0 text-green-600" />
+              <span className="text-sm leading-relaxed text-text-2">{t.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 이렇게 해보세요 — 체크 가능한 할 일 리스트 */}
+      {improves.length > 0 && (
+        <div className={goods.length > 0 ? "border-t border-border" : ""}>
+          <GroupHeader
+            icon={<Lightbulb size={13} className="text-amber-600" />}
+            title="이렇게 해보세요"
+            count={improves.length}
+            hint={doneCount > 0 ? `${doneCount}/${improves.length} 적용` : "탭해서 체크"}
+          />
+          {improves.map((t, i) => {
+            const checked = !!done[i];
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
+                aria-pressed={checked}
+                className="chat-pop flex w-full items-start gap-2.5 px-4 py-2.5 text-left transition-colors active:bg-surface-2"
+                style={rowDelay(goods.length + i)}
+              >
+                <span
+                  className={`mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                    checked ? "border-amber-500 bg-amber-500 text-white" : "border-text-3/40"
+                  }`}
+                >
+                  {checked && <Check size={11} strokeWidth={3} />}
+                </span>
+                <span
+                  className={`text-sm leading-relaxed transition-colors ${
+                    checked ? "text-text-3 line-through" : "text-text-2"
+                  }`}
+                >
+                  {t.text}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </Section>
   );
 }
 
