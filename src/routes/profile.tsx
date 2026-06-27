@@ -604,7 +604,7 @@ function JobModal({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-4 rounded-2xl border border-border bg-white p-4 shadow-sm">
+    <div className="border-b border-border py-5 first:pt-1 last:border-b-0">
       {children}
     </div>
   );
