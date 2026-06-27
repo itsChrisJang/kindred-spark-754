@@ -31,6 +31,14 @@ const INDUSTRIES = [
   "제조 · 엔지니어링", "공공 · 공무원", "전문직",
 ];
 
+const HOBBY_GROUPS: { label: string; items: string[] }[] = [
+  { label: "활동 · 취미", items: ["운동", "등산", "여행", "게임", "사진", "요리"] },
+  { label: "문화", items: ["영화", "음악", "공연", "독서", "전시"] },
+  { label: "음식 · 술", items: ["카페", "와인", "맛집", "맥주"] },
+  { label: "라이프스타일", items: ["반려동물", "자기계발", "패션"] },
+];
+const MAX_HOBBIES = 8;
+
 
 function Profile() {
   const qc = useQueryClient();
