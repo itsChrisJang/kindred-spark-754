@@ -16,7 +16,8 @@ const ListInput = z.object({
   area: z.string().trim().min(1).max(20).optional(),
 });
 
-const KAKAO_REST_KEY = process.env.VITE_KAKAO_REST_API_KEY;
+const KAKAO_REST_KEY =
+  process.env.KAKAO_REST_API_KEY || process.env.VITE_KAKAO_REST_API_KEY;
 
 type KakaoDoc = {
   id: string;
