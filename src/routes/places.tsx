@@ -532,7 +532,8 @@ function SheetOverlay({
             </div>
           )}
         </div>
-      </button>
+      </div>
+
 
       {/* 본문 */}
       <div className="min-h-0 flex-1">{children}</div>
