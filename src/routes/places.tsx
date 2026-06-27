@@ -734,70 +734,64 @@ function PlaceCard({ p }: { p: SeedPlace }) {
           <span className="tag-base bg-pink/10 text-pink">{p.category}</span>
         </div>
       )}
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <div className="text-[15px] font-semibold">{p.name}</div>
-            <div className="mt-0.5 text-xs text-text-3">{p.address}</div>
-            {p.kakaoCategory && (
-              <div className="mt-0.5 text-[11px] text-text-3">{p.kakaoCategory}</div>
-            )}
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[14px] font-semibold">{p.name}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-text-3">
+              <Star size={11} className="fill-amber-400 text-amber-400" />
+              <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
+              <span>({p.reviewCount.toLocaleString()})</span>
+              <span className="text-border">·</span>
+              <span className="truncate">{p.kakaoCategory ?? p.address}</span>
+            </div>
           </div>
-          <div className="text-right">
-            <div className="text-[13px] font-semibold text-pink">{p.priceRange ?? "—"}</div>
-            <div className="text-[10px] text-text-3">1인 가격대</div>
+          <div className="flex-shrink-0 text-right text-[12px] font-semibold text-pink">
+            {p.priceRange ?? "—"}
           </div>
         </div>
 
         {p.menuExamples && p.menuExamples.length > 0 && (
-          <div className="mt-2 flex items-start gap-1.5 text-xs text-text-2">
-            <Utensils size={12} className="mt-0.5 flex-shrink-0 text-text-3" />
-            <span>{p.menuExamples.join(" · ")}</span>
+          <div className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-text-2">
+            <Utensils size={11} className="flex-shrink-0 text-text-3" />
+            <span className="truncate">{p.menuExamples.join(" · ")}</span>
           </div>
         )}
 
         {p.reason && (
-          <div className="mt-2 rounded-lg bg-secondary px-2.5 py-1.5 text-xs text-text-2">
+          <div className="mt-1.5 line-clamp-2 rounded-md bg-secondary px-2 py-1 text-[11px] text-text-2">
             {p.reason}
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-between text-xs text-text-2">
-          <div className="flex items-center gap-1">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span className="font-semibold text-foreground">{p.rating.toFixed(1)}</span>
-            <span className="text-text-3">({p.reviewCount.toLocaleString()})</span>
-          </div>
-          {p.kakaoPhone && (
-            <a
-              href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
-              className="flex items-center gap-1 text-text-2 hover:text-pink"
-            >
-              <Phone size={12} />
-              {p.kakaoPhone}
-            </a>
-          )}
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-2 flex items-center gap-1.5">
           <a
             href={detailHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-[#FEE500] text-[13px] font-semibold text-[#3C1E1E]"
+            className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#FEE500] text-[12px] font-semibold text-[#3C1E1E]"
           >
-            <ExternalLink size={14} />
+            <ExternalLink size={12} />
             카카오플레이스
           </a>
           <a
             href={routeHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-surface text-[13px] font-semibold text-foreground"
+            className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-border text-[12px] font-semibold text-foreground"
           >
-            <MapPin size={14} className="text-pink" />
+            <MapPin size={12} className="text-pink" />
             길찾기
           </a>
+          {p.kakaoPhone && (
+            <a
+              href={`tel:${p.kakaoPhone.replace(/[^\d+]/g, "")}`}
+              aria-label="전화"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-border text-text-2"
+            >
+              <Phone size={12} />
+            </a>
+          )}
         </div>
       </div>
     </div>
