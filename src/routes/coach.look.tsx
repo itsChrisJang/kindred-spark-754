@@ -213,63 +213,93 @@ function classifySlot(category: string): Slot | null {
 }
 
 // ── 미니멀 도트 픽셀 캐릭터 ──────────────────────────────────────────────
-// 16×24 셀 매트릭스. 각 글자가 part를 가리키고, 렌더 시 part→hex 팔레트로 색을 주입한다.
-//   O 외곽선 · X 눈 · H 머리 · S 피부 · P 볼터치(고정) | T 상의 · K 아우터(있으면)/없으면 상의색 · B 하의 · F 신발
-// 'K'(어깨/옆판+카라)는 아우터가 있으면 아우터색, 없으면 상의색으로 떨어져 아우터가
-// 상의 위 레이어로 보이게 한다. 새 이미지 자산 0개, 픽셀 경계는 crispEdges로 선명하게.
+// 24×36 셀 고해상도 매트릭스. 각 글자가 part를 가리키고, 렌더 시 part→hex 팔레트로
+// 색을 주입한다. 셀이 작아져 도트가 더 촘촘하고, 늘어난 해상도로 머리·어깨·턱 외곽의
+// 계단을 픽셀 단위로 다듬어 경직된 직사각형 느낌을 덜어냈다(anti-alias 없이 crispEdges).
+//   O 외곽선 · X 눈 · H 머리 · S 피부 · P 볼터치(고정)
+//   T 상의 · K 아우터(있으면)/없으면 상의색 · B 하의 · F 신발 (메인 색은 colorToHex 그대로)
+//   소문자 t·k·b·f = 각 슬롯의 음영(카라·소매선·밑단·밑창). 메인 색을 shade()로 살짝
+//   어둡게 깐 1px 라인이라 단조로운 색면을 끊어주되 리스트 색 원의 hex는 건드리지 않는다.
+// 'K'(어깨/소매)는 아우터가 있으면 아우터색, 없으면 상의색으로 떨어져 아우터가 상의 위
+// 레이어로 보이게 한다. 새 이미지 자산 0개.
 const PIXEL_M = [
-  "................",
-  "................",
-  ".....OOOOOO.....",
-  "....OHHHHHHO....",
-  "...OHHHHHHHHO...",
-  "...OHSSSSSSHO...",
-  "...OHSSSSSSHO...",
-  "...OSSSSSSSSO...",
-  "...OSSXSSXSSO...",
-  "...OPSSSSSSPO...",
-  "....OSSSSSSO....",
-  ".....OSSSSO.....",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "...OBBBOOBBBO...",
-  "...OBBBOOBBBO...",
-  "...OBBBOOBBBO...",
-  "...OBBBOOBBBO...",
-  "...OFFFOOFFFO...",
-  "...OFFFOOFFFO...",
+  "........................",
+  "........................",
+  ".......OOOOOOOOOO.......",
+  "......OHHHHHHHHHHO......",
+  ".....OHHHHHHHHHHHHO.....",
+  ".....OHHHHHHHHHHHHO.....",
+  ".....OHSSSSSSSSSSHO.....",
+  ".....OHSSSSSSSSSSHO.....",
+  ".....OSSSSSSSSSSSSO.....",
+  ".....OSSXSSSSSSXSSO.....",
+  ".....OSSSSSSSSSSSSO.....",
+  ".....OSPSSSSSSSSPSO.....",
+  ".....OSSSSSSSSSSSSO.....",
+  "......OSSSSSSSSSSO......",
+  ".......OSSSSSSSSO.......",
+  ".........OSSSSO.........",
+  "......OKKtSSSStKKO......",
+  "...OKKKTtTTTTTTtTKKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OSSkTTTTTTTTTTkSSO...",
+  "......OttttttttttO......",
+  "......ObbbbbbbbbbO......",
+  "......OBBBBOOBBBBO......",
+  "......OBBBBOOBBBBO......",
+  "......OBBBBOOBBBBO......",
+  "......OBBBBOOBBBBO......",
+  "......OBBBBOOBBBBO......",
+  "......OBBBBOOBBBBO......",
+  "......ObbbbOObbbbO......",
+  "......OFFFFOOFFFFO......",
+  ".....OFFFFFOOFFFFFO.....",
+  ".....OfffffOOfffffO.....",
 ];
 
-// 여성 베이스: 옆으로 흘러내리는 긴 머리(H) + A라인 스커트 + 가는 다리 실루엣.
+// 여성 베이스: 옆으로 흘러내리는 머리(H)가 어깨까지 흐르고, A라인 스커트 +
+// 가는 다리 실루엣. 남성보다 턱선·어깨를 한 픽셀씩 더 둥글려 부드럽게.
 const PIXEL_F = [
-  "................",
-  "................",
-  ".....OOOOOO.....",
-  "....OHHHHHHO....",
-  "...OHHHHHHHHO...",
-  "...OHSSSSSSHO...",
-  "...OHSSSSSSHO...",
-  "...OHSSSSSSHO...",
-  "...OHSXSSXSHO...",
-  "...OHPSSSSPHO...",
-  "...OHSSSSSSHO...",
-  "....HOSSSSOH....",
-  "..OHKKTTTTKKHO..",
-  "..OHKKTTTTKKHO..",
-  "..OHKKTTTTKKHO..",
-  "..OHKKTTTTKKHO..",
-  "..OKKKTTTTKKKO..",
-  "..OKKKTTTTKKKO..",
-  "...OBBBBBBBBO...",
-  "..OBBBBBBBBBBO..",
-  "....OSSOOSSO....",
-  "....OSSOOSSO....",
-  "....OFFOOFFO....",
-  "....OFFOOFFO....",
+  "........................",
+  "........................",
+  ".......OOOOOOOOOO.......",
+  "......OHHHHHHHHHHO......",
+  ".....OHHHHHHHHHHHHO.....",
+  ".....OHHHHHHHHHHHHO.....",
+  ".....OHHSSSSSSSSHHO.....",
+  ".....OHHSSSSSSSSHHO.....",
+  ".....OHSSSSSSSSSSHO.....",
+  ".....OHSXSSSSSSXSHO.....",
+  ".....OHSSSSSSSSSSHO.....",
+  ".....OHPSSSSSSSSPHO.....",
+  ".....OHSSSSSSSSSSHO.....",
+  ".....OHHSSSSSSSSHHO.....",
+  ".....OHHHSSSSSSHHHO.....",
+  ".....OHHHHSSSSHHHHO.....",
+  "...OHHKKtSSSSSStKKHHO...",
+  "...OHHKTtTTTTTTtTKHHO...",
+  "...OHKkTTTTTTTTTTkKHO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OKKkTTTTTTTTTTkKKO...",
+  "...OSSkTTTTTTTTTTkSSO...",
+  "......OttttttttttO......",
+  "......ObbbbbbbbbbO......",
+  "......OBBBBBBBBBBO......",
+  ".....OBBBBBBBBBBBBO.....",
+  "....OBBBBBBBBBBBBBBO....",
+  "...ObbbbbbbbbbbbbbbbO...",
+  "......OSSSO..OSSSO......",
+  "......OSSSO..OSSSO......",
+  "......OSSSO..OSSSO......",
+  ".....OFFFFO..OFFFFO.....",
+  "....OFFFFFO..OFFFFFO....",
+  "....OfffffO..OfffffO....",
 ];
 
 // 고정 파트 팔레트(피부·머리·외곽선·볼터치). 추천 색과 무관하게 항상 동일.
@@ -315,6 +345,16 @@ function buildLook(items: { category: string; color: string }[]) {
   return { palette, legend };
 }
 
+// 슬롯 메인 색을 살짝 어둡게 만든 음영 톤(카라·소매선·밑단·밑창 1px 라인용).
+// 리스트의 색 원과 hex가 같아야 하는 건 메인(대문자)뿐이라, 음영은 여기서만 파생한다.
+function shade(hex: string, amt = 0.82): string {
+  const m = hex.replace("#", "");
+  const full = m.length === 3 ? m.replace(/(.)/g, "$1$1") : m;
+  const ch = (i: number) => Math.round(parseInt(full.slice(i, i + 2), 16) * amt);
+  const h = (n: number) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0");
+  return `#${h(ch(0))}${h(ch(2))}${h(ch(4))}`;
+}
+
 function pixelColor(ch: string, palette: SlotPalette): string | null {
   switch (ch) {
     case "O":
@@ -334,6 +374,15 @@ function pixelColor(ch: string, palette: SlotPalette): string | null {
       return palette.bottom;
     case "F":
       return palette.shoe;
+    // 소문자 = 음영 라인(메인 색을 shade로 살짝 어둡게)
+    case "t":
+      return shade(palette.top);
+    case "k":
+      return shade(palette.outer ?? palette.top);
+    case "b":
+      return shade(palette.bottom);
+    case "f":
+      return shade(palette.shoe);
     default:
       return null; // 빈 셀
   }
@@ -343,15 +392,17 @@ function pixelColor(ch: string, palette: SlotPalette): string | null {
 function PixelCharacter({
   gender,
   palette,
-  cell = 9,
+  cell = 6,
 }: {
   gender: "M" | "F";
   palette: SlotPalette;
   cell?: number;
 }) {
   const matrix = gender === "F" ? PIXEL_F : PIXEL_M;
+  const cols = matrix[0].length;
+  const rows = matrix.length;
   const rects: React.ReactNode[] = [];
-  for (let y = 0; y < matrix.length; y++) {
+  for (let y = 0; y < rows; y++) {
     const row = matrix[y];
     for (let x = 0; x < row.length; x++) {
       const fill = pixelColor(row[x], palette);
@@ -361,9 +412,9 @@ function PixelCharacter({
   }
   return (
     <svg
-      width={16 * cell}
-      height={24 * cell}
-      viewBox="0 0 16 24"
+      width={cols * cell}
+      height={rows * cell}
+      viewBox={`0 0 ${cols} ${rows}`}
       shapeRendering="crispEdges"
       role="img"
       aria-label={`${gender === "F" ? "여성" : "남성"} 픽셀 캐릭터가 추천 색상의 코디를 입은 미리보기`}
@@ -400,7 +451,7 @@ function LookHero({
           추천 룩 미리보기
         </div>
         <div className="flex flex-col items-center">
-          <PixelCharacter gender={gender} palette={palette} cell={9} />
+          <PixelCharacter gender={gender} palette={palette} cell={6} />
           {/* 발밑 그림자로 캐릭터를 무대에 안착 */}
           <div className="mt-[-3px] h-2 w-24 rounded-[50%] bg-black/[0.12] blur-[3px]" />
         </div>
@@ -451,7 +502,7 @@ function LookCoach() {
       <NavHeader back backTo="/coach" title="오늘 데이트 룩 추천" />
       <div className="scroll-area bg-surface">
         {/* 흰 캔버스 + 카드 시스템. 날씨는 자기 카드 안에만 색을 담아 톤을 고정한다. */}
-        <div className="space-y-4 px-4 pb-4 pt-4">
+        <div className="space-y-4 px-4 pb-20 pt-4">
           {/* 오늘의 날씨: 하늘이 카드 안에만 클립되는 포함형 위젯 */}
           <WeatherCard weather={weather} onSelect={setWeather} />
 
@@ -569,7 +620,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-2 text-[12px] font-medium text-text-3">{label}</div>
+      <div className="mb-2 text-[12px] font-medium text-text-2">{label}</div>
       {children}
     </div>
   );
@@ -638,7 +689,7 @@ function WeatherTile({
       className={`relative flex flex-col items-center gap-1.5 rounded-xl py-4 text-sm transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
         active
           ? "bg-white font-bold text-slate-900 motion-safe:scale-[1.05]"
-          : "border border-white/30 bg-white/20 font-semibold text-slate-500 backdrop-blur-sm"
+          : "border border-white/40 bg-white/30 font-semibold text-slate-700 backdrop-blur-sm"
       }`}
       style={
         active
@@ -649,7 +700,7 @@ function WeatherTile({
       <Icon
         size={22}
         style={{ color: theme.accent }}
-        className={active ? "" : "opacity-55"}
+        className={active ? "" : "opacity-75"}
       />
       {theme.label}
     </button>
@@ -701,7 +752,7 @@ function GenderToggle({
             className={`rounded-full px-4 py-1.5 text-[12px] transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
               gender === g.id
                 ? "bg-pink font-semibold text-white shadow-[0_2px_8px_rgba(255,75,123,0.4)]"
-                : "font-medium text-text-3"
+                : "font-medium text-text-2"
             }`}
           >
             {g.label}
@@ -730,10 +781,10 @@ function Chip({
       className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] px-4 text-[13px] transition duration-200 ease-out motion-safe:active:scale-[0.97] ${
         active
           ? "border-pink bg-pink font-semibold text-white shadow-[0_4px_14px_rgba(255,75,123,0.4)] motion-safe:scale-[1.04]"
-          : "border-border bg-surface font-medium text-text-3"
+          : "border-border bg-surface font-medium text-text-2"
       }`}
     >
-      {Icon && <Icon size={15} className={active ? "text-white" : "text-text-3 opacity-70"} />}
+      {Icon && <Icon size={15} className={active ? "text-white" : "text-text-3"} />}
       {children}
     </button>
   );
@@ -823,7 +874,7 @@ function Result({ data, gender }: { data: LookRecommendation; gender: "M" | "F" 
                     <div className="flex items-center gap-1.5">
                       <Icon size={13} className="shrink-0 text-text-3" />
                       <span className="text-[13px] font-semibold">{it.category}</span>
-                      <span className="ml-auto shrink-0 pl-2 text-[11px] font-medium text-text-3">
+                      <span className="ml-auto shrink-0 pl-2 text-[11px] font-medium text-text-2">
                         {it.color}
                       </span>
                     </div>
