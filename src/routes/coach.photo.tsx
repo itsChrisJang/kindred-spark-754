@@ -39,6 +39,54 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+// ── 마지막 분석 결과를 새로고침/이탈 후에도 복원하기 위한 보존(세션 한정) ──
+const STORE_KEY = "coach.photo.last.v1";
+
+function loadSaved(): { image: string; result: PhotoAnalysis } | null {
+  try {
+    const raw = sessionStorage.getItem(STORE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.image && parsed?.result ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveResult(image: string | null, result: PhotoAnalysis) {
+  if (!image) return; // 썸네일 생성 실패(예: HEIC) 시 보존 생략
+  try {
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({ image, result }));
+  } catch {
+    // 용량 초과 등은 무시 — 보존은 best-effort
+  }
+}
+
+// 보존·복원용 작은 썸네일 dataURL(최대 변 480px, JPEG) — 원본 base64는 너무 커서 저장 불가
+function makeThumb(file: File, max = 480): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      URL.revokeObjectURL(url);
+      if (!ctx) return reject(new Error("canvas 미지원"));
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("이미지 로드 실패"));
+    };
+    img.src = url;
+  });
+}
+
 function prefersReducedMotion() {
   return (
     typeof window !== "undefined" &&
@@ -127,15 +175,31 @@ function verdictLabel(s: number) {
 
 function PhotoCoach() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const thumbRef = useRef<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [result, setResult] = useState<PhotoAnalysis | null>(null);
   const analyze = useMutation({
     mutationFn: async (file: File) => {
       const dataUrl = await fileToDataUrl(file);
       return api.analyzePhoto(dataUrl);
     },
+    onSuccess: (data) => {
+      setResult(data);
+      saveResult(thumbRef.current, data);
+    },
   });
 
-  const heroScore = useCountUp(analyze.data?.score ?? 0, !!analyze.data);
+  // 마운트 후 복원(SSR/하이드레이션 안전하게 effect에서만 sessionStorage 접근)
+  useEffect(() => {
+    const s = loadSaved();
+    if (s) {
+      setPreview(s.image);
+      setResult(s.result);
+      thumbRef.current = s.image;
+    }
+  }, []);
+
+  const heroScore = useCountUp(result?.score ?? 0, !!result);
 
   function openPicker() {
     const el = inputRef.current;
@@ -144,21 +208,40 @@ function PhotoCoach() {
     el.click();
   }
 
-  async function onFile(f?: File) {
+  function onFile(f?: File) {
     if (!f) return;
+    setResult(null); // 새 분석 동안 이전 결과 숨김
     setPreview(URL.createObjectURL(f));
+    thumbRef.current = null;
+    makeThumb(f)
+      .then((t) => {
+        thumbRef.current = t;
+      })
+      .catch(() => {
+        thumbRef.current = null;
+      });
     analyze.mutate(f);
-  }
-
-  function reset() {
-    setPreview(null);
-    analyze.reset();
-    if (inputRef.current) inputRef.current.value = "";
   }
 
   return (
     <PhoneShell>
-      <NavHeader back backTo="/coach" title="AI 사진 코칭" />
+      <NavHeader
+        back
+        backTo="/coach"
+        title="AI 사진 코칭"
+        right={
+          preview ? (
+            <button
+              type="button"
+              onClick={openPicker}
+              aria-label="새 사진 분석"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-transform active:scale-95"
+            >
+              <Camera size={16} />
+            </button>
+          ) : undefined
+        }
+      />
       <div className="scroll-area">
         <div className="p-4">
           {preview ? (
@@ -166,7 +249,7 @@ function PhotoCoach() {
             // object-top 으로 어느 비율에서도 상단의 얼굴이 잘리지 않도록 보존.
             <div
               className={`relative flex w-full items-end overflow-hidden rounded-3xl bg-surface-2 shadow-sm ring-1 ring-border transition-[aspect-ratio] duration-300 ${
-                analyze.data ? "aspect-[3/2]" : "aspect-[4/5]"
+                result ? "aspect-[3/2]" : "aspect-[4/5]"
               }`}
             >
               <img
@@ -177,7 +260,7 @@ function PhotoCoach() {
 
               {analyze.isPending && <ScanOverlay src={preview} />}
 
-              {analyze.data && (
+              {result && (
                 <div className="z-10 w-full bg-gradient-to-t from-black/75 via-black/40 to-transparent p-4 pt-10">
                   <div className="flex items-end justify-between">
                     <div className="text-left">
@@ -189,8 +272,8 @@ function PhotoCoach() {
                         <span className="ml-0.5 text-base font-medium text-white/70">점</span>
                       </div>
                     </div>
-                    <span className={`tag-base ${scoreTone(analyze.data.score).chip}`}>
-                      {verdictLabel(analyze.data.score)}
+                    <span className={`tag-base ${scoreTone(result.score).chip}`}>
+                      {verdictLabel(result.score)}
                     </span>
                   </div>
                 </div>
@@ -236,13 +319,13 @@ function PhotoCoach() {
 
         {!preview && !analyze.isPending && <UploadHints />}
 
-        {analyze.data && <Result data={analyze.data} />}
+        {result && <Result data={result} />}
 
         {preview && !analyze.isPending && (
           <div className="px-4 pb-6 pt-1">
             <button
               type="button"
-              onClick={reset}
+              onClick={openPicker}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 text-sm font-medium text-text-2 ring-1 ring-border transition-colors hover:text-foreground"
             >
               <Camera size={16} />
