@@ -241,8 +241,22 @@ function ChatPractice() {
         </form>
       </div>
       {showPaywall && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-[420px] rounded-t-3xl bg-surface px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-6">
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowPaywall(false)}
+        >
+          <div
+            className="relative w-full max-w-[420px] rounded-t-3xl bg-surface px-6 pb-[max(env(safe-area-inset-bottom),24px)] pt-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowPaywall(false)}
+              aria-label="닫기"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-text-2"
+            >
+              <X size={18} />
+            </button>
             <div className="mb-3 flex justify-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink to-purple">
                 <Lock size={24} className="text-white" />
