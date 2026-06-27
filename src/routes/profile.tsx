@@ -169,7 +169,7 @@ function Profile() {
           </button>
         }
       />
-      <div className="scroll-area bg-pink-light/40 px-4 pt-3 pb-28">
+      <div className="scroll-area bg-white px-4 pt-3 pb-28">
         {/* 기본 정보 */}
         <Card>
           <SectionLabel>기본 정보</SectionLabel>
