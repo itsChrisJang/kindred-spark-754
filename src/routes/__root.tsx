@@ -148,32 +148,24 @@ function RootComponent() {
 }
 
 const PUBLIC_PATHS = ["/login"];
-const ONBOARDING_EXEMPT = ["/login", "/profile"];
 
 function AuthGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
   const [hasSession, setHasSession] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [profileChecked, setProfileChecked] = useState(false);
-  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setHasSession(!!data.session);
-      setUserId(data.session?.user.id ?? null);
       setChecked(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED")
         return;
       setHasSession(!!session);
-      setUserId(session?.user.id ?? null);
       if (event === "SIGNED_OUT") {
-        setHasProfile(false);
-        setProfileChecked(false);
         router.navigate({ to: "/login" });
       }
     });
@@ -184,45 +176,14 @@ function AuthGate({ children }: { children: ReactNode }) {
   }, [router]);
 
   useEffect(() => {
-    if (!userId) {
-      setProfileChecked(false);
-      return;
-    }
-    let cancelled = false;
-    supabase
-      .from("profiles")
-      .select("user_id,nickname")
-      .eq("user_id", userId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setHasProfile(!!(data && data.nickname));
-        setProfileChecked(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
-
-  useEffect(() => {
     if (!checked) return;
     const path = router.state.location.pathname;
     if (!hasSession && !PUBLIC_PATHS.includes(path)) {
       router.navigate({ to: "/login" });
-      return;
     }
-    if (hasSession && profileChecked && !hasProfile && !ONBOARDING_EXEMPT.includes(path)) {
-      router.navigate({ to: "/profile" });
-    }
-  }, [
-    checked,
-    hasSession,
-    profileChecked,
-    hasProfile,
-    router,
-    router.state.location.pathname,
-  ]);
+  }, [checked, hasSession, router, router.state.location.pathname]);
 
   return <>{children}</>;
 }
+
 
