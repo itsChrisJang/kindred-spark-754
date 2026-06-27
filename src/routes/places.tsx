@@ -693,27 +693,47 @@ function ChoiceCard({
 function PlaceCard({ p }: { p: SeedPlace }) {
   const detailHref = p.kakaoPlaceUrl ?? kakaoMapSearchUrl(p.name, p.address);
   const routeHref = kakaoMapRouteUrl(p);
+  const hasRealImage = !!p.kakaoImageUrl;
   const imgSrc = p.kakaoImageUrl ?? placeImage(p);
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-      <a
-        href={detailHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative block aspect-[16/9] w-full bg-secondary"
-      >
-        <img
-          src={imgSrc}
-          alt={p.name}
-          loading="lazy"
-          className="h-full w-full object-cover"
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement;
-            if (el.src !== placeImage(p)) el.src = placeImage(p);
-          }}
-        />
-        <span className="absolute right-2 top-2 tag-base bg-white/90 text-pink">{p.category}</span>
-      </a>
+      {hasRealImage ? (
+        <a
+          href={detailHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative block aspect-[16/9] w-full bg-secondary"
+        >
+          <img
+            src={imgSrc}
+            alt={p.name}
+            loading="lazy"
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              if (el.src !== placeImage(p)) el.src = placeImage(p);
+            }}
+          />
+          <span className="absolute right-2 top-2 tag-base bg-white/90 text-pink">{p.category}</span>
+        </a>
+      ) : (
+        <div className="flex items-center gap-3 px-3 pt-3">
+          <a
+            href={detailHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative block h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-secondary"
+          >
+            <img
+              src={imgSrc}
+              alt={p.name}
+              loading="lazy"
+              className="h-full w-full object-cover opacity-80"
+            />
+          </a>
+          <span className="tag-base bg-pink/10 text-pink">{p.category}</span>
+        </div>
+      )}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
