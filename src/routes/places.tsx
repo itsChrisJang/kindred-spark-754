@@ -70,10 +70,17 @@ const SORT = [
 ] as const;
 type Sort = (typeof SORT)[number]["value"];
 
-function kakaoMapSearchUrl(name: string, address: string) {
-  const q = encodeURIComponent(`${name} ${address}`);
-  return `https://map.kakao.com/?q=${q}`;
+/** 카카오 점포 상세 페이지. place_id 있으면 점포 상세, 없으면 이름 검색(상세 카드 선택 가능). */
+function kakaoPlaceDetailUrl(p: {
+  kakaoPlaceUrl?: string;
+  kakaoPlaceId?: string;
+  name: string;
+}) {
+  if (p.kakaoPlaceUrl) return p.kakaoPlaceUrl;
+  if (p.kakaoPlaceId) return `https://place.map.kakao.com/${p.kakaoPlaceId}`;
+  return `https://map.kakao.com/?q=${encodeURIComponent(p.name)}`;
 }
+/** 길찾기: place_id가 있으면 점포 정보가 뜨는 to 링크, 없으면 지도에서 위치만 표시. */
 function kakaoMapRouteUrl(p: {
   kakaoPlaceId?: string;
   name: string;
@@ -83,8 +90,9 @@ function kakaoMapRouteUrl(p: {
   if (p.kakaoPlaceId) {
     return `https://map.kakao.com/link/to/${p.kakaoPlaceId}`;
   }
-  return `https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`;
+  return `https://map.kakao.com/link/map/${encodeURIComponent(p.name)},${p.lat},${p.lng}`;
 }
+
 
 const CATEGORY_IMAGES: Record<string, string[]> = {
   카페: [
