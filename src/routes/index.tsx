@@ -306,15 +306,18 @@ function FilterSelect({
   value,
   options,
   onChange,
+  icon,
 }: {
   label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  icon?: ReactNode;
 }) {
   return (
-    <label className="relative flex h-10 items-center justify-between rounded-xl bg-secondary px-3">
-      <span className="min-w-0">
+    <label className="relative flex h-11 items-center gap-2 rounded-xl border border-border bg-background px-3">
+      {icon}
+      <span className="min-w-0 flex-1">
         <span className="block text-[10px] font-semibold text-text-3">{label}</span>
         <span className="block truncate text-[13px] font-bold text-foreground">
           {options.find((option) => option.value === value)?.label ?? "전체"}
@@ -332,7 +335,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <span className="ml-2 text-xs font-black text-text-3">⌄</span>
+      <span className="text-xs font-black text-text-3">⌄</span>
     </label>
   );
 }
