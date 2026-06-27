@@ -235,10 +235,15 @@ function Places() {
   };
   const pins = useMemo(
     () =>
-      selectedPlace
-        ? [{ id: selectedPlace.id, lat: selectedPlace.lat, lng: selectedPlace.lng, label: selectedPlace.name, sublabel: pinSub(selectedPlace) }]
-        : sorted.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng, label: p.name, sublabel: pinSub(p) })),
-    [selectedPlace, sorted],
+      sorted.map((p) => ({
+        id: p.id,
+        lat: p.lat,
+        lng: p.lng,
+        label: p.name,
+        sublabel: pinSub(p),
+        selected: selectedId === p.id,
+      })),
+    [selectedId, sorted],
   );
 
 
