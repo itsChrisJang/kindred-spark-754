@@ -25,9 +25,13 @@ export type Database = {
           is_after: boolean
           kakao_category: string | null
           kakao_enriched_at: string | null
+          kakao_image_url: string | null
           kakao_phone: string | null
           kakao_place_id: string | null
           kakao_place_url: string | null
+          kakao_rating: number | null
+          kakao_review_count: number | null
+          kakao_title: string | null
           lat: number
           lng: number
           menu_examples: string[]
@@ -50,9 +54,13 @@ export type Database = {
           is_after?: boolean
           kakao_category?: string | null
           kakao_enriched_at?: string | null
+          kakao_image_url?: string | null
           kakao_phone?: string | null
           kakao_place_id?: string | null
           kakao_place_url?: string | null
+          kakao_rating?: number | null
+          kakao_review_count?: number | null
+          kakao_title?: string | null
           lat: number
           lng: number
           menu_examples?: string[]
@@ -75,9 +83,13 @@ export type Database = {
           is_after?: boolean
           kakao_category?: string | null
           kakao_enriched_at?: string | null
+          kakao_image_url?: string | null
           kakao_phone?: string | null
           kakao_place_id?: string | null
           kakao_place_url?: string | null
+          kakao_rating?: number | null
+          kakao_review_count?: number | null
+          kakao_title?: string | null
           lat?: number
           lng?: number
           menu_examples?: string[]
