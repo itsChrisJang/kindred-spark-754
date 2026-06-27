@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 
 function escapeHtml(s: string): string {
@@ -6,8 +6,6 @@ function escapeHtml(s: string): string {
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] as string
   ));
 }
-
-
 
 /**
  * 카카오맵 기반 지도 컴포넌트.
@@ -49,6 +47,9 @@ function loadKakaoSdk(): Promise<any> {
   return sdkPromise;
 }
 
+const BALLOON_STYLE =
+  "display:inline-block;padding:5px 10px;font-size:11px;font-weight:600;color:#111;white-space:nowrap;line-height:1.2;";
+
 export function MapView({
   lat,
   lng,
@@ -57,6 +58,7 @@ export function MapView({
   pins,
   label,
   fill = false,
+  centerOffsetY = 0,
   onPinClick,
 }: {
   lat: number;
@@ -66,18 +68,35 @@ export function MapView({
   height?: number;
   pins?: { id?: string; lat: number; lng: number; label?: string }[];
   label?: string;
-  /** true면 부모 컨테이너를 100%로 채움 (height 무시, 보더/라운드 제거) */
+  /** true면 부모 컨테이너를 100%로 채움 */
   fill?: boolean;
-  /** 마커 클릭 콜백 (id 또는 label 전달) */
+  /** 지도 중심 위치를 픽셀 단위로 보정. 양수면 view를 아래로 이동(=마커가 위로 올라옴). */
+  centerOffsetY?: number;
+  /** 마커 클릭 콜백 */
   onPinClick?: (id: string) => void;
 }) {
-
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const onPinClickRef = useRef(onPinClick);
   const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  // 초기화
+  useEffect(() => {
+    onPinClickRef.current = onPinClick;
+  }, [onPinClick]);
+
+  // pins reference is unstable across parent renders → derive a stable key
+  const pinsKey = useMemo(
+    () =>
+      (pins ?? [])
+        .map((p) => `${p.id ?? ""}@${p.lat.toFixed(6)},${p.lng.toFixed(6)}#${p.label ?? ""}`)
+        .join("|"),
+    [pins],
+  );
+  const hasPins = (pins?.length ?? 0) > 0;
+
+  // 1) Init (한 번)
   useEffect(() => {
     let cancelled = false;
     loadKakaoSdk()
@@ -87,6 +106,7 @@ export function MapView({
           center: new kakao.maps.LatLng(lat, lng),
           level: zoom,
         });
+        setReady(true);
       })
       .catch((err) => {
         console.warn("[MapView] Kakao SDK 로드 실패:", err);
@@ -95,75 +115,89 @@ export function MapView({
     return () => {
       cancelled = true;
     };
-    // 컨테이너 1회 초기화 — center/zoom 변경은 아래 effect에서 반영
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-  // center / zoom 갱신
+  // 2) Center / zoom 갱신 (+ 픽셀 오프셋)
   useEffect(() => {
+    if (!ready) return;
     const kakao = window.kakao;
     const map = mapRef.current;
     if (!kakao?.maps || !map) return;
-    map.setCenter(new kakao.maps.LatLng(lat, lng));
     map.setLevel(zoom);
-  }, [lat, lng, zoom]);
+    map.setCenter(new kakao.maps.LatLng(lat, lng));
+    if (centerOffsetY) {
+      // panBy: 양수 dy → view가 아래로 → 중심점이 화면상 위쪽으로 올라옴
+      requestAnimationFrame(() => map.panBy(0, centerOffsetY));
+    }
+  }, [ready, lat, lng, zoom, centerOffsetY]);
 
-  // 마커 갱신 (중심 핀 + 추가 핀)
+  // 3) 중심 마커 (pins 없을 때만)
   useEffect(() => {
+    if (!ready || hasPins) return;
     const kakao = window.kakao;
     const map = mapRef.current;
     if (!kakao?.maps || !map) return;
 
-    markersRef.current.forEach((m) => m.setMap(null));
+    const pos = new kakao.maps.LatLng(lat, lng);
+    const marker = new kakao.maps.Marker({ position: pos, map });
+    let iw: any;
+    if (label) {
+      iw = new kakao.maps.InfoWindow({
+        position: pos,
+        content: `<div style="${BALLOON_STYLE}">${escapeHtml(label)}</div>`,
+        removable: false,
+      });
+      iw.open(map, marker);
+    }
+    return () => {
+      marker.setMap(null);
+      iw?.close();
+    };
+  }, [ready, hasPins, lat, lng, label]);
+
+  // 4) 다중 핀 마커 (pinsKey 기반 — 부모 리렌더에 영향 없음)
+  useEffect(() => {
+    if (!ready) return;
+    const kakao = window.kakao;
+    const map = mapRef.current;
+    if (!kakao?.maps || !map) return;
+
+    // 이전 핀 제거
+    markersRef.current.forEach((m) => m.setMap?.(null));
     markersRef.current = [];
 
-    const center = new kakao.maps.Marker({
-      position: new kakao.maps.LatLng(lat, lng),
-      map,
-    });
-    markersRef.current.push(center);
+    if (!pins || pins.length === 0) return;
 
-    if (label) {
-      const iw = new kakao.maps.InfoWindow({
-        position: new kakao.maps.LatLng(lat, lng),
-        content: `<div style="padding:4px 8px;font-size:11px;font-weight:500;">${escapeHtml(label)}</div>`,
-      });
-
-      iw.open(map, center);
-      markersRef.current.push({ setMap: () => iw.close() });
-    }
-
-    pins?.forEach((p) => {
-      const marker = new kakao.maps.Marker({
-        position: new kakao.maps.LatLng(p.lat, p.lng),
-        map,
-        clickable: true,
-      });
+    pins.forEach((p) => {
+      const pos = new kakao.maps.LatLng(p.lat, p.lng);
+      const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
       markersRef.current.push(marker);
-      if (onPinClick) {
-        const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
-        kakao.maps.event.addListener(marker, "click", () => onPinClick(handlerId));
-      }
+
+      const handlerId = p.id ?? p.label ?? `${p.lat},${p.lng}`;
+      kakao.maps.event.addListener(marker, "click", () => {
+        onPinClickRef.current?.(handlerId);
+      });
+
       if (p.label) {
         const iw = new kakao.maps.InfoWindow({
-          position: new kakao.maps.LatLng(p.lat, p.lng),
-          content: `<div style="padding:3px 6px;font-size:10px;">${escapeHtml(p.label)}</div>`,
+          position: pos,
+          content: `<div style="${BALLOON_STYLE}">${escapeHtml(p.label)}</div>`,
+          removable: false,
         });
-
         iw.open(map, marker);
         markersRef.current.push({ setMap: () => iw.close() });
       }
     });
-  }, [lat, lng, label, pins, onPinClick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, pinsKey]);
 
   const wrapperBase = fill
     ? "relative h-full w-full bg-secondary"
     : "relative overflow-hidden rounded-2xl border border-border bg-secondary";
   const wrapperStyle = fill ? { width: "100%", height: "100%" } : { height, width: "100%" };
 
-
-  // 키 미설정 또는 SDK 로드 실패 시 OpenStreetMap 정적 이미지로 대체 (마커 포함)
+  // 키 미설정 또는 SDK 로드 실패 시 OSM 폴백
   if (!KAKAO_KEY || failed) {
     const bbox = `${lng - 0.008},${lat - 0.005},${lng + 0.008},${lat + 0.005}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
@@ -188,8 +222,6 @@ export function MapView({
 
   return <div ref={containerRef} className={wrapperBase} style={wrapperStyle} />;
 }
-
-
 
 // 한국 주요 지역 좌표
 export const AREA_COORDS: Record<string, { lat: number; lng: number }> = {
