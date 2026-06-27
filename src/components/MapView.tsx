@@ -188,7 +188,7 @@ export function MapView({
       if (p.label) {
         const iw = new kakao.maps.CustomOverlay({
           position: pos,
-          content: `<div style="${BALLOON_STYLE}">${escapeHtml(p.label)}</div>`,
+          content: balloonHtml(p.label, p.sublabel),
           yAnchor: 1,
           xAnchor: 0.5,
         });
