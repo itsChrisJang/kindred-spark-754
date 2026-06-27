@@ -181,13 +181,14 @@ export function MapView({
       });
 
       if (p.label) {
-        const iw = new kakao.maps.InfoWindow({
+        const iw = new kakao.maps.CustomOverlay({
           position: pos,
           content: `<div style="${BALLOON_STYLE}">${escapeHtml(p.label)}</div>`,
-          removable: false,
+          yAnchor: 1,
+          xAnchor: 0.5,
         });
-        iw.open(map, marker);
-        markersRef.current.push({ setMap: () => iw.close() });
+        iw.setMap(map);
+        markersRef.current.push({ setMap: (m: any) => iw.setMap(m) });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
