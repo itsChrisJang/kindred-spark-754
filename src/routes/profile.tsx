@@ -76,6 +76,8 @@ function Profile() {
   const [drinking, setDrinking] = useState("가끔");
   const [excludeCompany, setExcludeCompany] = useState(true);
   const [rematch, setRematch] = useState(false);
+  const [hobbies, setHobbies] = useState<string[]>([]);
+  const [customHobby, setCustomHobby] = useState("");
 
   useEffect(() => {
     if (!existing) return;
