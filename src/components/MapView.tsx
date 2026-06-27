@@ -47,8 +47,38 @@ function loadKakaoSdk(): Promise<any> {
   return sdkPromise;
 }
 
-const BALLOON_STYLE =
-  "display:inline-block;padding:5px 10px;font-size:11px;font-weight:600;color:#111;white-space:nowrap;line-height:1.2;";
+// 핀 모양 (하트형 티어드롭) — 앱 핑크 톤
+const PIN_HTML = `
+<div style="position:relative;width:28px;height:34px;transform:translate(-50%,-100%);cursor:pointer;filter:drop-shadow(0 4px 6px rgba(236,72,153,0.35));">
+  <svg width="28" height="34" viewBox="0 0 28 34" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 2C7.4 2 2 7.2 2 13.6c0 8.5 10.2 17.2 11.4 18.2.4.3.9.3 1.3 0C15.8 30.8 26 22.1 26 13.6 26 7.2 20.6 2 14 2z" fill="#EC4899" stroke="#fff" stroke-width="2"/>
+    <circle cx="14" cy="13.6" r="4.2" fill="#fff"/>
+  </svg>
+</div>`.trim();
+
+const PIN_HTML_ACTIVE = `
+<div style="position:relative;width:34px;height:42px;transform:translate(-50%,-100%);cursor:pointer;filter:drop-shadow(0 6px 10px rgba(236,72,153,0.5));">
+  <svg width="34" height="42" viewBox="0 0 28 34" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 2C7.4 2 2 7.2 2 13.6c0 8.5 10.2 17.2 11.4 18.2.4.3.9.3 1.3 0C15.8 30.8 26 22.1 26 13.6 26 7.2 20.6 2 14 2z" fill="#DB2777" stroke="#fff" stroke-width="2"/>
+    <circle cx="14" cy="13.6" r="4.2" fill="#fff"/>
+  </svg>
+</div>`.trim();
+
+const BALLOON_STYLE = [
+  "display:inline-block",
+  "padding:6px 10px",
+  "margin-bottom:6px",
+  "font-size:11px",
+  "font-weight:700",
+  "color:#BE185D",
+  "background:#fff",
+  "border:1px solid rgba(236,72,153,0.25)",
+  "border-radius:9999px",
+  "box-shadow:0 4px 12px rgba(236,72,153,0.18)",
+  "white-space:nowrap",
+  "line-height:1.2",
+  "transform:translateY(-4px)",
+].join(";") + ";";
 
 export function MapView({
   lat,
