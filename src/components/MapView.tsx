@@ -98,7 +98,7 @@ export function MapView({
   const pinsKey = useMemo(
     () =>
       (pins ?? [])
-        .map((p) => `${p.id ?? ""}@${p.lat.toFixed(6)},${p.lng.toFixed(6)}#${p.label ?? ""}`)
+        .map((p) => `${p.id ?? ""}@${p.lat.toFixed(6)},${p.lng.toFixed(6)}#${p.label ?? ""}${p.selected ? "*" : ""}`)
         .join("|"),
     [pins],
   );
