@@ -326,9 +326,7 @@ export const api = {
     return (rows as MeetingRow[]).map((r) => rowToMeeting(r, joined));
   },
 
-
   // Profile ----------------------------------------------
-  _rowToProfile: undefined as never,
   async saveProfile(
     input: Omit<UserProfile, "id" | "email">,
   ): Promise<UserProfile> {
